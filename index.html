@@ -1,0 +1,2610 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cantoral – Repertório da Santa Missa</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --azul-profundo: #1a3a5c;
+    --azul-medio: #2a6496;
+    --azul-claro: #5b9bd5;
+    --azul-palido: #c8dff5;
+    --azul-gelo: #eaf4fd;
+    --azul-branco: #f5faff;
+    --branco: #ffffff;
+    --cinza-suave: #e8eef5;
+    --texto-escuro: #1a2f45;
+    --texto-medio: #3a5470;
+    --texto-claro: #7a9dbf;
+    --dourado: #c9a227;
+    --dourado-claro: #f0d980;
+    --sombra: 0 4px 20px rgba(42,100,150,0.12);
+    --sombra-hover: 0 8px 32px rgba(42,100,150,0.22);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(160deg, #ddeeff 0%, #f0f7ff 40%, #ffffff 100%);
+    min-height: 100vh;
+    color: var(--texto-escuro);
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, var(--azul-profundo) 0%, var(--azul-medio) 100%);
+    color: white;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    box-shadow: 0 4px 24px rgba(26,58,92,0.25);
+    position: sticky; top: 0; z-index: 100;
+    gap: 10px;
+  }
+  .header-brand {
+    display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+  }
+  .header-icon {
+    width: 34px; height: 34px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .header-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
+  .header-sub { font-size: 9px; opacity: 0.7; letter-spacing: 1.2px; text-transform: uppercase; }
+  .header-nav { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .nav-btn {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .nav-btn:hover, .nav-btn.active {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.5);
+  }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; min-height: calc(100vh - 60px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 300px; min-width: 300px;
+    background: white;
+    border-right: 1px solid var(--azul-palido);
+    padding: 24px 16px;
+    overflow-y: auto;
+    box-shadow: 4px 0 16px rgba(42,100,150,0.06);
+  }
+  .sidebar-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px; font-weight: 600;
+    color: var(--texto-claro);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0 8px 12px;
+    border-bottom: 1px solid var(--azul-palido);
+    margin-bottom: 12px;
+  }
+  .catalogo-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.18s;
+    margin-bottom: 4px;
+    color: var(--texto-medio);
+    font-size: 13.5px;
+    font-weight: 600;
+    position: relative;
+  }
+  .catalogo-item:hover { background: var(--azul-gelo); color: var(--azul-medio); }
+  .catalogo-item.active {
+    background: linear-gradient(135deg, var(--azul-palido), #d8ecff);
+    color: var(--azul-profundo);
+    box-shadow: inset 3px 0 0 var(--azul-claro);
+  }
+  .catalogo-item .cat-icon { font-size: 16px; }
+  .catalogo-item .cat-delete {
+    margin-left: auto; opacity: 0; font-size: 13px; color: #c0392b;
+    background: none; border: none; cursor: pointer; padding: 2px 5px;
+    border-radius: 4px; transition: opacity 0.15s;
+  }
+  .catalogo-item:hover .cat-delete { opacity: 0.6; }
+  .catalogo-item .cat-delete:hover { opacity: 1; background: #fee; }
+
+  .add-catalogo-btn {
+    width: 100%; padding: 10px 12px;
+    border: 2px dashed var(--azul-palido);
+    background: transparent;
+    border-radius: var(--radius-sm);
+    color: var(--azul-claro);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.18s;
+    margin-top: 8px;
+    letter-spacing: 0.3px;
+  }
+  .add-catalogo-btn:hover { border-color: var(--azul-claro); background: var(--azul-gelo); color: var(--azul-medio); }
+
+  /* ── MAIN ── */
+  .main { flex: 1; overflow-y: auto; }
+
+
+
+  /* ── VIEW: HOME ── */
+  #view-home { padding: 32px; }
+  .home-hero {
+    background: linear-gradient(135deg, var(--azul-profundo), var(--azul-medio));
+    color: white;
+    border-radius: 24px;
+    padding: 34px;
+    box-shadow: var(--sombra-hover);
+    margin-bottom: 24px;
+    overflow: hidden;
+    position: relative;
+  }
+  .home-hero::after {
+    content: '✝';
+    position: absolute;
+    right: 28px;
+    bottom: -24px;
+    font-size: 130px;
+    opacity: 0.08;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .home-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .home-subtitle { font-size: 15px; opacity: 0.84; max-width: 560px; line-height: 1.7; }
+  .home-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+  .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .home-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--sombra);
+    border: 1px solid var(--azul-palido);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .home-card:hover { transform: translateY(-2px); box-shadow: var(--sombra-hover); border-color: var(--azul-claro); }
+  .home-card-icon { font-size: 30px; margin-bottom: 12px; }
+  .home-card-title { font-family: 'Cormorant Garamond', serif; font-size: 23px; font-weight: 600; color: var(--azul-profundo); margin-bottom: 6px; }
+  .home-card-text { color: var(--texto-claro); font-size: 13px; line-height: 1.6; }
+
+  /* ── VIEW: CATALOGO ── */
+  #view-catalogo { padding: 32px; }
+
+  .cat-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--azul-palido);
+  }
+  .cat-header-title { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 600; color: var(--azul-profundo); }
+  .cat-header-sub { font-size: 12px; color: var(--texto-claro); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+  .cat-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+  .btn {
+    padding: 10px 20px; border-radius: 24px;
+    font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; border: none;
+    letter-spacing: 0.3px;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--azul-medio), var(--azul-claro)); color: white; box-shadow: 0 4px 14px rgba(42,100,150,0.3); }
+  .btn-primary:hover { box-shadow: 0 6px 20px rgba(42,100,150,0.45); transform: translateY(-1px); }
+  .btn-outline { background: white; border: 2px solid var(--azul-palido); color: var(--azul-medio); }
+  .btn-outline:hover { border-color: var(--azul-claro); background: var(--azul-gelo); }
+  .btn-ghost { background: transparent; color: var(--texto-claro); padding: 8px 14px; }
+  .btn-ghost:hover { background: var(--azul-gelo); color: var(--azul-medio); }
+  .btn-danger { background: #fee2e2; color: #c0392b; border: none; }
+  .btn-danger:hover { background: #fecaca; }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+  .btn-gold { background: linear-gradient(135deg, #c9a227, #e8c547); color: white; box-shadow: 0 4px 14px rgba(201,162,39,0.3); }
+  .btn-gold:hover { box-shadow: 0 6px 20px rgba(201,162,39,0.45); transform: translateY(-1px); }
+
+  /* ── MOMENTOS ── */
+  .momento-section {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--sombra);
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .momento-section:hover { box-shadow: var(--sombra-hover); }
+
+  .momento-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 22px;
+    background: linear-gradient(135deg, var(--azul-gelo), var(--azul-branco));
+    border-bottom: 1px solid var(--azul-palido);
+    cursor: pointer;
+    user-select: none;
+  }
+  .momento-icon {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--azul-claro), var(--azul-medio));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; color: white;
+    flex-shrink: 0;
+  }
+  .momento-nome { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--azul-profundo); }
+  .momento-count { font-size: 11px; color: var(--texto-claro); letter-spacing: 0.5px; margin-top: 1px; }
+  .momento-actions { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+  .momento-toggle { font-size: 14px; color: var(--texto-claro); transition: transform 0.2s; }
+  .momento-toggle.open { transform: rotate(180deg); }
+
+  .momento-body { padding: 16px 22px; }
+
+  /* ── MUSICA CARD ── */
+  .musica-card {
+    display: flex; align-items: center; gap: 14px;
+    padding: 13px 16px;
+    border: 1px solid var(--cinza-suave);
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+    background: var(--azul-branco);
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .musica-card:hover { border-color: var(--azul-claro); background: var(--azul-gelo); box-shadow: 0 3px 12px rgba(42,100,150,0.1); }
+  .musica-card .music-icon { font-size: 20px; flex-shrink: 0; }
+  .musica-card .music-info { flex: 1; min-width: 0; }
+  .musica-card .music-title { font-weight: 700; font-size: 14px; color: var(--texto-escuro); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .musica-card .music-meta { font-size: 11.5px; color: var(--texto-claro); margin-top: 2px; }
+  .musica-card .music-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .tag-tom {
+    background: var(--azul-palido); color: var(--azul-profundo);
+    padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .tag-tom:hover { background: var(--azul-claro); color: white; }
+
+  .add-musica-row {
+    display: flex; gap: 10px; align-items: center;
+    padding: 10px 16px;
+    border: 2px dashed var(--cinza-suave);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.18s;
+    color: var(--texto-claro);
+    font-size: 13px; font-weight: 600;
+  }
+  .add-musica-row:hover { border-color: var(--azul-claro); color: var(--azul-medio); background: var(--azul-gelo); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center; padding: 80px 40px;
+  }
+  .empty-icon { font-size: 72px; margin-bottom: 20px; opacity: 0.4; }
+  .empty-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--azul-medio); margin-bottom: 10px; }
+  .empty-sub { font-size: 14px; color: var(--texto-claro); max-width: 360px; margin: 0 auto 24px; line-height: 1.7; }
+
+  /* ── MODALS ── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(10,30,60,0.45);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .overlay.open { display: flex; }
+
+  .modal {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 24px 80px rgba(26,58,92,0.35);
+    width: 100%; max-width: 640px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes modalIn {
+    from { transform: scale(0.88) translateY(20px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .modal-header {
+    padding: 24px 28px 18px;
+    border-bottom: 1px solid var(--azul-palido);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: var(--azul-profundo); }
+  .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--texto-claro); padding: 4px 8px; border-radius: 8px; transition: all 0.15s; }
+  .modal-close:hover { background: var(--azul-gelo); color: var(--azul-profundo); }
+  .modal-body { padding: 24px 28px; }
+  .modal-footer { padding: 16px 28px 24px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--azul-palido); }
+
+  /* ── FORM ── */
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--texto-medio); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 7px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 11px 15px;
+    border: 2px solid var(--cinza-suave);
+    border-radius: var(--radius-sm);
+    font-family: 'Nunito', sans-serif; font-size: 14px;
+    color: var(--texto-escuro);
+    background: var(--azul-branco);
+    transition: border-color 0.18s, box-shadow 0.18s;
+    outline: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--azul-claro);
+    box-shadow: 0 0 0 3px rgba(91,155,213,0.15);
+  }
+  .form-textarea { min-height: 120px; resize: vertical; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; }
+  .form-hint { font-size: 11.5px; color: var(--texto-claro); margin-top: 5px; }
+
+  .tom-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tom-chip {
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 12.5px; font-weight: 700; cursor: pointer;
+    border: 2px solid var(--cinza-suave);
+    background: var(--azul-branco); color: var(--texto-medio);
+    transition: all 0.15s;
+  }
+  .tom-chip:hover { border-color: var(--azul-claro); }
+  .tom-chip.selected { background: var(--azul-medio); color: white; border-color: var(--azul-medio); }
+
+  /* ── BUSCA ── */
+  .busca-resultado {
+    border: 1px solid var(--cinza-suave);
+    border-radius: var(--radius-sm);
+    background: white;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+  .busca-item {
+    padding: 13px 16px; cursor: pointer;
+    border-bottom: 1px solid var(--cinza-suave);
+    transition: background 0.15s;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .busca-item:last-child { border-bottom: none; }
+  .busca-item:hover { background: var(--azul-gelo); }
+  .busca-item-title { font-weight: 700; font-size: 14px; color: var(--texto-escuro); }
+  .busca-item-meta { font-size: 12px; color: var(--texto-claro); margin-top: 2px; }
+  .busca-loading { padding: 20px; text-align: center; color: var(--texto-claro); font-size: 13px; }
+  .busca-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--azul-palido); border-top-color: var(--azul-claro); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── VIEWER DE MUSICA ── */
+  .viewer-modal { max-width: 780px; }
+  .viewer-controls {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 14px 28px;
+    background: var(--azul-gelo);
+    border-bottom: 1px solid var(--azul-palido);
+  }
+  .viewer-controls label { font-size: 12px; font-weight: 700; color: var(--texto-medio); letter-spacing: 0.8px; text-transform: uppercase; }
+  .tonalidade-ctrl { display: flex; align-items: center; gap: 6px; }
+  .tone-btn {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid var(--azul-palido);
+    background: white; color: var(--azul-medio);
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; line-height: 1;
+  }
+  .tone-btn:hover { border-color: var(--azul-claro); background: var(--azul-gelo); }
+  .tone-display {
+    background: var(--azul-medio); color: white;
+    padding: 5px 16px; border-radius: 20px;
+    font-size: 14px; font-weight: 700; min-width: 52px; text-align: center;
+  }
+  .view-toggle { display: flex; border-radius: 20px; overflow: hidden; border: 2px solid var(--azul-palido); }
+  .view-toggle-btn {
+    padding: 6px 14px; font-size: 12px; font-weight: 700;
+    border: none; cursor: pointer; transition: all 0.15s;
+    font-family: 'Nunito', sans-serif; letter-spacing: 0.3px;
+  }
+  .view-toggle-btn.active { background: var(--azul-medio); color: white; }
+  .view-toggle-btn:not(.active) { background: white; color: var(--texto-medio); }
+
+  .musica-content {
+    padding: 28px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px; line-height: 2;
+    white-space: pre-wrap;
+    color: var(--texto-escuro);
+    background: var(--azul-branco);
+    border-radius: 0 0 20px 20px;
+    letter-spacing: 0.2px;
+  }
+  .cifra-line { color: var(--azul-medio); font-weight: 800; font-size: 13px; letter-spacing: 0.5px; }
+  .letra-only { font-size: 15px; line-height: 2.2; }
+
+  /* ── VIEW: REPERTORIO ── */
+  #view-repertorio { padding: 32px; }
+  .search-bar-wrapper { position: relative; margin-bottom: 24px; }
+  .search-bar {
+    width: 100%; padding: 13px 20px 13px 48px;
+    border: 2px solid var(--azul-palido);
+    border-radius: 28px; font-family: 'Nunito', sans-serif; font-size: 14px;
+    color: var(--texto-escuro); background: white; outline: none;
+    transition: border-color 0.18s, box-shadow 0.18s;
+  }
+  .search-bar:focus { border-color: var(--azul-claro); box-shadow: 0 0 0 4px rgba(91,155,213,0.12); }
+  .search-icon { position: absolute; left: 17px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--texto-claro); }
+
+  .filtro-momento-wrapper { margin: -10px 0 24px; }
+  .filtro-momento-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--azul-palido);
+    border-radius: 18px;
+    background: white;
+    color: var(--texto-medio);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    outline: none;
+    box-shadow: 0 2px 10px rgba(42,100,150,0.06);
+  }
+  .filtro-momento-select:focus {
+    border-color: var(--azul-claro);
+    box-shadow: 0 0 0 4px rgba(91,155,213,0.12);
+  }
+
+  .rep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .rep-card {
+    background: white; border-radius: var(--radius); padding: 20px 22px;
+    box-shadow: var(--sombra); cursor: pointer; transition: all 0.2s;
+    border: 1px solid transparent;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .rep-card:hover { box-shadow: var(--sombra-hover); border-color: var(--azul-claro); transform: translateY(-2px); }
+  .rep-card-top { display: flex; align-items: flex-start; gap: 10px; }
+  .rep-card-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--azul-profundo); flex: 1; }
+  .fav-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 2px solid var(--azul-palido);
+    background: white;
+    color: var(--texto-claro);
+    cursor: pointer;
+    font-size: 17px;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .fav-btn:hover { border-color: var(--dourado-claro); color: var(--dourado); background: #fff9df; }
+  .fav-btn.active { border-color: var(--dourado); color: var(--dourado); background: #fff7d1; }
+  .rep-card-meta { font-size: 12px; color: var(--texto-claro); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .rep-card-tom { background: var(--azul-palido); color: var(--azul-profundo); padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .rep-card-momentos { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rep-momento-tag { background: var(--azul-gelo); color: var(--azul-medio); padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+
+
+
+  /* ── TIPOS DE CELEBRAÇÃO ── */
+  .tipo-section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--texto-claro);
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    padding: 14px 8px 6px;
+  }
+  .tipo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--azul-gelo);
+    color: var(--azul-medio);
+    padding: 4px 11px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+  }
+  .tipo-manage-card {
+    background: white;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: var(--sombra);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--cinza-suave);
+  }
+  .tipo-manage-icon {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg,var(--azul-palido),var(--azul-gelo));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ── MOMENTOS MANAGEMENT ── */
+  .momentos-list { display: flex; flex-direction: column; gap: 8px; }
+  .momento-manage-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: var(--radius-sm);
+    background: var(--azul-branco); border: 1px solid var(--cinza-suave);
+  }
+  .momento-manage-item .drag-handle { cursor: grab; color: var(--texto-claro); font-size: 14px; }
+  .momento-manage-item .m-icon { font-size: 18px; }
+  .momento-manage-item .m-name { flex: 1; font-weight: 600; font-size: 13.5px; color: var(--texto-medio); }
+  .checkbox-toggle {
+    width: 42px; height: 24px; border-radius: 12px;
+    background: var(--cinza-suave); position: relative; cursor: pointer;
+    transition: background 0.2s; border: none; outline: none; flex-shrink: 0;
+  }
+  .checkbox-toggle.on { background: var(--azul-claro); }
+  .checkbox-toggle::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; border-radius: 50%; background: white;
+    transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  }
+  .checkbox-toggle.on::after { transform: translateX(18px); }
+
+  /* Tabs */
+  .page-tabs { display: flex; gap: 4px; margin-bottom: 28px; border-bottom: 2px solid var(--azul-palido); }
+  .page-tab {
+    padding: 10px 22px; background: none; border: none;
+    font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700;
+    color: var(--texto-claro); cursor: pointer; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    transition: all 0.15s; position: relative; bottom: -2px;
+    border-bottom: 2px solid transparent;
+  }
+  .page-tab.active { color: var(--azul-medio); border-bottom-color: var(--azul-medio); background: white; }
+  .page-tab:hover:not(.active) { color: var(--azul-medio); }
+
+  /* Toasts */
+  .toast-area { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+  .toast {
+    background: var(--azul-profundo); color: white;
+    padding: 12px 20px; border-radius: 12px;
+    font-size: 13px; font-weight: 600;
+    box-shadow: 0 8px 28px rgba(26,58,92,0.35);
+    animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    display: flex; align-items: center; gap: 10px;
+  }
+  @keyframes toastIn { from { transform: translateX(80px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--azul-palido); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--azul-claro); }
+
+  /* FAB Nova Celebração — sempre visível no mobile */
+  /* Tabs de celebração: escondidas no desktop (sidebar faz esse papel) */
+  #cat-tabs { display: none; }
+
+  #fab-nova-celebracao {
+    display: none; /* escondido no desktop — sidebar já tem o botão */
+  }
+  @media (max-width: 768px) {
+    #fab-nova-celebracao {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      background: linear-gradient(135deg, var(--azul-medio), var(--azul-claro));
+      color: white;
+      border: none;
+      border-radius: 28px;
+      padding: 14px 22px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 6px 24px rgba(42,100,150,0.4);
+      cursor: pointer;
+      z-index: 50;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    /* Layout */
+    .sidebar { display: none; }
+    .main { width: 100%; }
+    .app { min-height: calc(100vh - 60px); }
+    #cat-tabs { display: flex !important; }
+
+    /* Header mobile: esconde subtítulo e ícone decorativo */
+    .header-sub { display: none; }
+    .header-icon { display: none; }
+    .header-title { font-size: 18px; }
+    .header-nav { gap: 4px; overflow-x: auto; }
+    .nav-btn { padding: 6px 10px; font-size: 11px; }
+
+    /* Páginas */
+    #view-home, #view-catalogo, #view-repertorio { padding: 16px; }
+
+    /* Cabeçalho do catálogo */
+    .home-hero { padding: 24px 20px; }
+    .home-title { font-size: 30px; }
+    .cat-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .cat-header-title { font-size: 24px; }
+    .cat-actions { width: 100%; justify-content: flex-start; }
+
+    /* Momentos */
+    .momento-header { padding: 14px 16px; gap: 10px; }
+    .momento-icon { width: 32px; height: 32px; font-size: 14px; border-radius: 8px; }
+    .momento-nome { font-size: 16px; }
+    .momento-body { padding: 12px 14px; }
+
+    /* Cards de música */
+    .musica-card { padding: 11px 12px; }
+
+    /* Modais */
+    .modal { border-radius: 16px 16px 0 0; max-height: 92vh; margin-top: auto; }
+    .overlay { align-items: flex-end; padding: 0; }
+    .modal-header { padding: 18px 20px 14px; }
+    .modal-body { padding: 16px 20px; }
+    .modal-footer { padding: 12px 20px 20px; }
+
+    /* Viewer */
+    .viewer-modal { border-radius: 16px 16px 0 0; }
+    .viewer-controls { flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+    .musica-content { padding: 16px; font-size: 13px; }
+
+    /* Repertório grid */
+    .rep-grid { grid-template-columns: 1fr; }
+
+    /* Formulário de dois em dois */
+    div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+
+    /* Toast */
+    .toast-area { bottom: 16px; right: 16px; left: 16px; }
+    .toast { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-brand">
+    <div class="header-icon">🎵</div>
+    <div>
+      <div class="header-title">Cantoral</div>
+      <div class="header-sub">Repertório da Santa Missa</div>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <button class="nav-btn active" onclick="showPage('home')">🏠 Home</button>
+    <button class="nav-btn" onclick="showPage('catalogos')">📋 Celebrações</button>
+    <button class="nav-btn" onclick="showPage('repertorio')">🎶 Repertório</button>
+  </nav>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-title">✝ Minhas Celebrações</div>
+    <div id="catalogos-list"></div>
+    <button class="add-catalogo-btn" onclick="abrirModalNovoCatalogo()">+ Nova Celebração</button>
+    <button class="add-catalogo-btn" style="margin-top:6px;border-color:var(--azul-claro);color:var(--azul-medio)" onclick="mostrarGerenciar()">⚙️ Gerenciar Celebrações</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- VIEW: HOME -->
+    <div id="view-home">
+      <section class="home-hero">
+        <div class="home-title">Cantoral</div>
+        <div class="home-subtitle">Organize as músicas da Santa Missa por celebração, momento litúrgico, repertório e favoritas.</div>
+        <div class="home-actions">
+          <button class="btn btn-gold" onclick="showPage('catalogos')">📋 Ver Celebrações</button>
+          <button class="btn btn-outline" onclick="showPage('repertorio'); switchRepTab('favoritas')">⭐ Ver Favoritas</button>
+          <button class="btn btn-outline" onclick="showPage('repertorio')">🎶 Abrir Repertório</button>
+        </div>
+      </section>
+      <div class="home-grid">
+        <div class="home-card" onclick="showPage('catalogos')">
+          <div class="home-card-icon">✝</div>
+          <div class="home-card-title">Celebrações</div>
+          <div class="home-card-text">Monte uma missa com músicas separadas por Entrada, Glória, Comunhão, Encerramento e outros momentos.</div>
+        </div>
+        <div class="home-card" onclick="showPage('repertorio')">
+          <div class="home-card-icon">🎶</div>
+          <div class="home-card-title">Repertório</div>
+          <div class="home-card-text">Consulte todas as músicas cadastradas, veja letras e cifras e adicione novas músicas.</div>
+        </div>
+        <div class="home-card" onclick="showPage('repertorio'); switchRepTab('favoritas')">
+          <div class="home-card-icon">⭐</div>
+          <div class="home-card-title">Favoritas</div>
+          <div class="home-card-text">Acesse rapidamente as músicas que você mais usa nas celebrações e momentos de oração.</div>
+        </div>
+        <div class="home-card" onclick="abrirModalNovoCatalogo()">
+          <div class="home-card-icon">➕</div>
+          <div class="home-card-title">Nova Celebração</div>
+          <div class="home-card-text">Crie um novo catálogo para a próxima missa e escolha os momentos litúrgicos desejados.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: CATALOGOS -->
+    <div id="view-catalogo" style="display:none">
+      <!-- Tabs de navegação (visíveis apenas no mobile) -->
+      <div class="page-tabs" id="cat-tabs" style="display:none">
+        <button class="page-tab active" id="cat-tab-missa" onclick="switchCatTab('missa')">🎵 Missa</button>
+        <button class="page-tab" id="cat-tab-gerenciar" onclick="switchCatTab('gerenciar')">⚙️ Gerenciar</button>
+      </div>
+      <div id="catalogo-content"></div>
+      <div id="gerenciar-content" style="display:none"></div>
+      <!-- Botão flutuante "Nova Celebração" visível no mobile -->
+      <button id="fab-nova-celebracao" onclick="abrirModalNovoCatalogo()" title="Nova Celebração">✝ Nova Celebração</button>
+    </div>
+
+    <!-- VIEW: REPERTORIO -->
+    <div id="view-repertorio" style="display:none">
+      <div class="page-tabs" id="rep-tabs">
+        <button class="page-tab active" onclick="switchRepTab('todas')">Todas as Músicas</button>
+        <button class="page-tab" onclick="switchRepTab('favoritas')">⭐ Favoritas</button>
+        <button class="page-tab" onclick="switchRepTab('adicionar')">+ Adicionar Nova</button>
+      </div>
+      <div id="rep-tab-todas">
+        <div class="search-bar-wrapper">
+          <span class="search-icon">🔍</span>
+          <input class="search-bar" id="rep-search-input" type="text" placeholder="Buscar no repertório..." oninput="filtrarRepertorio(this.value)">
+        </div>
+        <div class="filtro-momento-wrapper">
+          <select class="filtro-momento-select" id="filtro-momento-todas" onchange="aplicarFiltrosRepertorio()">
+            <option value="">Todos os momentos</option>
+          </select>
+        </div>
+        <div class="rep-grid" id="rep-grid"></div>
+      </div>
+      <div id="rep-tab-favoritas" style="display:none">
+        <div class="search-bar-wrapper">
+          <span class="search-icon">🔍</span>
+          <input class="search-bar" id="fav-search-input" type="text" placeholder="Buscar nas favoritas..." oninput="filtrarFavoritas(this.value)">
+        </div>
+        <div class="filtro-momento-wrapper">
+          <select class="filtro-momento-select" id="filtro-momento-favoritas" onchange="aplicarFiltrosFavoritas()">
+            <option value="">Todos os momentos</option>
+          </select>
+        </div>
+        <div class="rep-grid" id="fav-grid"></div>
+      </div>
+      <div id="rep-tab-adicionar" style="display:none">
+        <div style="max-width:600px">
+          <div class="form-group">
+            <label class="form-label">🔎 Buscar Música</label>
+            <input class="form-input" id="busca-input" type="text" placeholder="Digite o nome da música..." oninput="buscarMusica(this.value)">
+            <div class="form-hint">Busque primeiro no repertório local. Se não encontrar, abra uma busca na internet e depois cadastre manualmente.</div>
+          </div>
+          <div id="busca-resultados"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODALS -->
+<!-- Modal: Novo Catálogo -->
+<div class="overlay" id="modal-catalogo">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✝ Nova Celebração</div>
+      <button class="modal-close" onclick="fecharModal('modal-catalogo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nome da Celebração</label>
+        <input class="form-input" id="nc-nome" type="text" placeholder="Ex: Domingo 08/06, Missa das 10h...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo de Celebração</label>
+        <select class="form-select" id="nc-tipo"></select>
+        <div class="form-hint">Ex: Missa Dominical, Páscoa, Natal, Quaresma, Adoração...</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Momentos Litúrgicos</label>
+        <div class="form-hint" style="margin-bottom:12px">Ative ou desative os momentos para esta celebração</div>
+        <div class="momentos-list" id="nc-momentos"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-catalogo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCatalogo()">Criar Celebração</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Gerenciar Momentos do Catálogo -->
+<div class="overlay" id="modal-momentos">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Momentos Litúrgicos</div>
+      <button class="modal-close" onclick="fecharModal('modal-momentos')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-hint" style="margin-bottom:16px">Ative ou desative momentos para esta celebração. Ex: desative a Glória na Quaresma.</div>
+      <div class="momentos-list" id="mm-momentos"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-momentos')">Fechar</button>
+      <button class="btn btn-primary" onclick="salvarMomentos()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Adicionar Música ao Catálogo -->
+<div class="overlay" id="modal-add-musica">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🎵 Adicionar Música</div>
+      <button class="modal-close" onclick="fecharModal('modal-add-musica')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="add-musica-info" style="margin-bottom:16px;padding:12px 16px;background:var(--azul-gelo);border-radius:10px;font-size:13px;color:var(--texto-medio)"></div>
+      <div class="form-group">
+        <label class="form-label">Momento Litúrgico</label>
+        <select class="form-select" id="am-momento"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-add-musica')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarAddMusica()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Manual de Música -->
+<div class="overlay" id="modal-nova-musica">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div class="modal-title">✍️ Nova Música Manual</div>
+      <button class="modal-close" onclick="fecharModal('modal-nova-musica')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Título</label>
+        <input class="form-input" id="nm-titulo" type="text" placeholder="Nome da música">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="form-group">
+          <label class="form-label">Artista / Autor</label>
+          <input class="form-input" id="nm-artista" type="text" placeholder="Quem compôs">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tom Original</label>
+          <input class="form-input" id="nm-tom" type="text" placeholder="Ex: Ré, Sol, Lá">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cifra (com letra)</label>
+        <textarea class="form-textarea" id="nm-cifra" style="min-height:180px" placeholder="Cole aqui a cifra com letra...
+Ex:
+G    Em
+Eis-me aqui, Senhor..."></textarea>
+        <div class="form-hint">Use espaços para alinhar acordes acima das sílabas</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-nova-musica')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarMusicaManual()">Salvar Música</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Visualizar Música -->
+<div class="overlay" id="modal-viewer">
+  <div class="modal viewer-modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="viewer-titulo"></div>
+        <div style="font-size:12px;color:var(--texto-claro);margin-top:3px" id="viewer-artista"></div>
+      </div>
+      <button class="modal-close" onclick="fecharModal('modal-viewer')">✕</button>
+    </div>
+    <div class="viewer-controls">
+      <label>Tom:</label>
+      <div class="tonalidade-ctrl">
+        <button class="tone-btn" onclick="transpor(-1)">♭</button>
+        <div class="tone-display" id="viewer-tom">C</div>
+        <button class="tone-btn" onclick="transpor(1)">♯</button>
+      </div>
+      <div class="tonalidade-ctrl" style="margin-left:10px;gap:4px">
+        <button class="tone-btn" onclick="mudarFonte(-1)" style="font-size:12px;font-weight:700;width:34px">A−</button>
+        <button class="tone-btn" onclick="mudarFonte(1)" style="font-size:15px;font-weight:700;width:34px">A+</button>
+      </div>
+      <div style="margin-left:auto">
+        <div class="view-toggle">
+          <button class="view-toggle-btn active" id="vt-cifra" onclick="setViewMode('cifra')">Cifra</button>
+          <button class="view-toggle-btn" id="vt-letra" onclick="setViewMode('letra')">Só Letra</button>
+        </div>
+      </div>
+    </div>
+    <div class="musica-content" id="viewer-content"></div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-area" id="toast-area"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+
+const MOMENTOS_PADRAO = [
+  { id: 'entrada', nome: 'Canto de Entrada', icon: '🚶' },
+  { id: 'ato-penitencial', nome: 'Ato Penitencial', icon: '🙏' },
+  { id: 'gloria', nome: 'Glória', icon: '✨' },
+  { id: 'salmo', nome: 'Salmo Responsorial', icon: '📖' },
+  { id: 'aclamacao', nome: 'Aclamação ao Evangelho', icon: '📣' },
+  { id: 'ofertorio', nome: 'Ofertório', icon: '🕯️' },
+  { id: 'santo', nome: 'Santo', icon: '🔔' },
+  { id: 'consagracao', nome: 'Consagração / Aclamação', icon: '✝️' },
+  { id: 'pai-nosso', nome: 'Pai Nosso', icon: '🌿' },
+  { id: 'cordeiro', nome: 'Cordeiro de Deus', icon: '🐑' },
+  { id: 'comunhao', nome: 'Comunhão', icon: '🍞' },
+  { id: 'acao-gracas', nome: 'Ação de Graças', icon: '💛' },
+  { id: 'adoracao', nome: 'Adoração', icon: '☀️' },
+  { id: 'encerramento', nome: 'Canto de Encerramento', icon: '🕊️' },
+];
+
+
+const TIPOS_CELEBRACAO_PADRAO = [
+  { id: 'missa-dominical', nome: 'Missa Dominical', icon: '⛪' },
+  { id: 'tempo-comum', nome: 'Tempo Comum', icon: '🌿' },
+  { id: 'advento', nome: 'Advento', icon: '🕯️' },
+  { id: 'natal', nome: 'Natal', icon: '🌟' },
+  { id: 'quaresma', nome: 'Quaresma', icon: '💜' },
+  { id: 'pascoa', nome: 'Páscoa', icon: '☀️' },
+  { id: 'missa-mariana', nome: 'Missa Mariana', icon: '💙' },
+  { id: 'adoracao', nome: 'Adoração', icon: '✝️' },
+  { id: 'outros', nome: 'Outros', icon: '📌' },
+];
+
+const TONS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const TONS_PT = {'C':'Dó','C#':'Dó#','D':'Ré','D#':'Ré#','E':'Mi','F':'Fá','F#':'Fá#','G':'Sol','G#':'Sol#','A':'Lá','A#':'Lá#','B':'Si'};
+
+// State
+let state = {
+  catalogos: [],
+  repertorio: [],
+  catalogoAtivo: null,
+  tiposCelebracao: [],
+};
+
+// Versão do app — alterar aqui força reset dos dados de seed
+const APP_VERSION = 'v2';
+
+// Load / Save
+function loadState() {
+  try {
+    const version = localStorage.getItem('cantoral_version');
+    const s = localStorage.getItem('cantoral_state');
+    if (s && version === APP_VERSION) {
+      state = JSON.parse(s);
+    }
+    if (!state.catalogos) state.catalogos = [];
+    if (!state.repertorio) state.repertorio = [];
+    if (!state.tiposCelebracao) state.tiposCelebracao = [];
+    normalizarTiposCelebracao();
+    state.repertorio.forEach(m => { if (typeof m.favorita === 'undefined') m.favorita = false; });
+  } catch(e) {
+    state = { catalogos: [], repertorio: [], catalogoAtivo: null, tiposCelebracao: [] };
+  }
+}
+function saveState() {
+  localStorage.setItem('cantoral_version', APP_VERSION);
+  localStorage.setItem('cantoral_state', JSON.stringify(state));
+}
+
+// Seed demo data
+function seedDemo() {
+  if (state.catalogos.length > 0) return;
+
+  // ── 8 músicas pré-carregadas ──
+  const musicas = [
+    {
+      id: 'seed_m1',
+      titulo: 'Eu Seguirei',
+      artista: 'Tony Allysson / Frei Gilson',
+      tom: 'E',
+      cifra: `[Intro] A  C#m  E  B
+
+E              D
+Eu vou deixar-me guiar
+D              E
+E me abandonar no teu querer
+D              D
+Preciso fazer a Tua vontade
+E
+Em minha vida
+
+F#m         A9
+Para onde eu irei?
+E
+Em quem me apoiarei?
+F#m         A9
+Para onde eu irei?
+E
+Em quem me apoiarei?
+
+[Refrão]
+B9          A9       E
+Eu seguirei, eu irei aonde fores Senhor
+B9          A9       E
+Eu seguirei, eu irei aonde fores Senhor
+F#m    A9
+Tua graça me basta
+E
+Teu amor me sustenta
+F#m    A9
+Tua graça me basta
+E
+Teu amor me sustenta
+
+A9    C#m
+Eu te seguirei
+B9
+Eu te seguirei`,
+      letra: `Eu vou deixar-me guiar
+E me abandonar no teu querer
+Preciso fazer a Tua vontade
+Em minha vida
+
+Para onde eu irei?
+Em quem me apoiarei?
+Para onde eu irei?
+Em quem me apoiarei?
+
+Eu seguirei, eu irei aonde fores Senhor
+Eu seguirei, eu irei aonde fores Senhor
+Tua graça me basta
+Teu amor me sustenta
+Tua graça me basta
+Teu amor me sustenta
+
+Eu te seguirei
+Eu te seguirei`
+    },
+    {
+      id: 'seed_m2',
+      titulo: 'Contrito',
+      artista: 'Frei Gilson',
+      tom: 'Em',
+      cifra: `[Intro] Em  C  D  Em  C  D
+
+Em          C    D      Em
+Contrito, humilhado, prostrado meu coração está
+Em          C    D         Em
+Preciso muito de ti, meu Senhor, vem me socorrer
+Em          C    D      Em
+Contrito, humilhado, prostrado meu coração está
+Em          C    D         Em
+Preciso muito de ti, meu Senhor, vem me socorrer
+
+C           D
+E tem misericórdia de mim
+          Em
+E tem misericórdia de mim filho de Davi
+C           D
+E tem misericórdia de mim
+          Em
+E tem misericórdia de mim filho de Davi
+
+C    D    G      Em    C    D    Em
+Misericórdia, misericórdia, misericórdia Filho de Davi  (2x)
+
+Em     C    D    Em
+Contrito, humilhado, prostrado meu coração está
+Em        C    D      Em
+Preciso muito de ti, meu Senhor, vem me socorrer  (2x)
+
+C      D       G    Em
+Senhor, piedade! Cristo, piedade!
+C    D    Em
+Senhor piedade, piedade de nós`,
+      letra: `Contrito, humilhado, prostrado meu coração está
+Preciso muito de ti, meu Senhor, vem me socorrer  (2x)
+
+E tem misericórdia de mim
+E tem misericórdia de mim filho de Davi  (2x)
+
+Misericórdia, misericórdia, misericórdia Filho de Davi  (2x)
+
+Contrito, humilhado, prostrado meu coração está
+Preciso muito de ti, meu Senhor, vem me socorrer  (2x)
+
+Senhor, piedade! Cristo, piedade!
+Senhor piedade, piedade de nós`
+    },
+    {
+      id: 'seed_m3',
+      titulo: 'Glória ao Pai, o Criador',
+      artista: 'Juventude de Cristo / Ir. Miria T. Kolling',
+      tom: 'D',
+      cifra: `[Intro] D  G  D  A7
+
+[Refrão]
+D       G    D    G  A7  D  D7
+Glória, glória
+G
+Ao Pai, O Criador
+D         Bm
+Ao Filho Redentor
+Em    A7   D
+E ao Espírito, Glória
+
+[Verso 1]
+D     G    D
+Ao Pai, O Criador do mundo
+G          A7   D   D7
+Ao Filho, Redentor dos homens
+G      D    Bm
+E ao Espírito de Amor
+Em    A7      D
+Demos sempre Glória!
+
+[Refrão]
+D       G    D    G  A7  D  D7
+Glória, glória
+G
+Ao Pai, O Criador
+D         Bm
+Ao Filho Redentor
+Em    A7   D
+E ao Espírito, Glória`,
+      letra: `Glória, glória
+Ao Pai, O Criador
+Ao Filho Redentor
+E ao Espírito, Glória  (2x)
+
+Ao Pai, O Criador do mundo
+Ao Filho, Redentor dos homens
+E ao Espírito de Amor
+Demos sempre Glória!
+
+Glória, glória
+Ao Pai, O Criador
+Ao Filho Redentor
+E ao Espírito, Glória`
+    },
+    {
+      id: 'seed_m4',
+      titulo: 'Aleluia (Quando Estamos Unidos)',
+      artista: 'Padre Zeca',
+      tom: 'D',
+      cifra: `[Refrão]
+D    A    Bm   F#m   G   D   A7
+Aleluia, Aleluia, Aleluia  (2x)
+
+Bm       F#m    Bm        F#m
+Quando estamos unidos, estás entre nós
+G      Em        A    A7
+E nos falarás da Tua vida
+
+D    A    Bm   F#m   G   D   A7
+Aleluia, Aleluia, Aleluia  (2x)
+
+Bm      F#m      Bm      F#m
+Este nosso mundo sentido terá
+G      Em    A     A7
+Se Tua palavra renovar
+
+D    A    Bm   F#m   G   D   A7
+Aleluia, Aleluia, Aleluia  (2x)`,
+      letra: `Aleluia, Aleluia, Aleluia  (2x)
+
+Quando estamos unidos, estás entre nós
+E nos falarás da Tua vida
+
+Aleluia, Aleluia, Aleluia  (2x)
+
+Este nosso mundo sentido terá
+Se Tua palavra renovar
+
+Aleluia, Aleluia, Aleluia  (2x)`
+    },
+    {
+      id: 'seed_m5',
+      titulo: 'Em Teu Abraço',
+      artista: 'Comunidade Católica Shalom',
+      tom: 'E',
+      cifra: `[Intro] E9  A9
+
+E9           A9
+Sobre este altar vidas, frutos, dons
+E9              A9
+Corações a se ofertar
+E9               A9
+Cantos, festa, anel, o Pai a esperar
+E9              A9
+Todos vem pra celebrar
+
+F#m7             G#m7
+Excessivo amor que nos constrange e que nos faz
+A               C#m7
+Tudo derramar sem calcular
+F#m7           E/G#
+Tudo que nos deste por amor sempre será
+A        B
+Todo Teu, ó Senhor
+
+E         F#m7  E/G#   A
+Pai em Teu abraço nossa vida se refaz
+E         F#m7       A
+Onde o pecador encontra a paz
+E       F#m      E/G#    A
+Tudo que de graça recebemos vamos dar
+E       F#m        A
+Com o pão e o vinho neste altar
+F#m7    A    E
+Engrandeces nosso nada
+F#m7    A    E
+Engrandeces nosso nada`,
+      letra: `Sobre este altar vidas, frutos, dons
+Corações a se ofertar
+Cantos, festa, anel, o Pai a esperar
+Todos vem pra celebrar
+
+Excessivo amor que nos constrange e que nos faz
+Tudo derramar sem calcular
+Tudo que nos deste por amor sempre será
+Todo Teu, ó Senhor
+
+Pai em Teu abraço nossa vida se refaz
+Onde o pecador encontra a paz
+Tudo que de graça recebemos vamos dar
+Com o pão e o vinho neste altar
+Engrandeces nosso nada
+Engrandeces nosso nada`
+    },
+    {
+      id: 'seed_m6',
+      titulo: 'Santo',
+      artista: 'Frei Gilson',
+      tom: 'E',
+      cifra: `[Intro] E  B  E4  E
+
+E       B
+Santo, Santo, Santo
+A        F#m
+Senhor Deus do universo
+A        B
+Senhor Deus do universo
+
+E        B
+O céu e a terra proclamam vossa glória
+A    F#m    B
+Hosa...na nas alturas
+
+E        B
+Bendito o que vem em nome do Senhor
+A    F#m    B
+Hosa...na nas alturas
+
+E       B
+Santo, Santo, Santo
+A        F#m
+Senhor Deus do universo
+A        B
+Senhor Deus do universo
+E
+Santo`,
+      letra: `Santo, Santo, Santo
+Senhor Deus do universo
+Senhor Deus do universo
+
+O céu e a terra proclamam vossa glória
+Hosana nas alturas
+
+Bendito o que vem em nome do Senhor
+Hosana nas alturas
+
+Santo, Santo, Santo
+Senhor Deus do universo
+Senhor Deus do universo
+Santo`
+    },
+    {
+      id: 'seed_m7',
+      titulo: 'Banquete',
+      artista: 'Fraternidade São João Paulo II',
+      tom: 'C#m',
+      cifra: `[Intro] A  B  C#m  G#m
+
+[Primeira Parte]
+A             B        C#m          G#m
+A festa já está preparada, são muitos convidados
+A
+Mas poucos decididos
+A       B          C#m
+A festa já está preparada
+G#m        A
+Muitos são chamados, mas poucos escolhidos
+
+B      A    B      C#m
+Ouvi o rei me chamar, se és bom ou mau, não importa
+B       A
+Não quero ser como os outros
+A          B      C#m     G#m
+Eu vou entrar, vou festejar de vestes novas
+
+[Refrão]
+A          B       C#m         G#m
+Dá-me tuas vestes, dá-me tuas vestes, dá-me tuas vestes Jesus  (2x)
+
+A          B       C#m         G#m
+Senhor eu sei que eu não mereço, mas hoje com tuas vestes estou
+A
+Mas hoje com tuas vestes estou
+A        B       C#m          G#m
+Agora eu já posso entrar na ceia que você preparou
+A
+Na ceia que você preparou
+
+B      A    B      C#m
+Ouvi o rei me chamar, se és bom ou mau, não importa
+B       A
+Não quero ser como os outros
+A          B      C#m     G#m
+Eu vou entrar, vou festejar de vestes novas
+
+[Refrão]
+A          B       C#m         G#m
+Dá-me tuas vestes, dá-me tuas vestes, dá-me tuas vestes Jesus  (2x)
+
+A           B       C#m
+E este banquete é Tua presença, Deus
+        G#m
+E se Tuas vestes eu tiver
+A
+Em Tua presença habitarei  (2x)`,
+      letra: `A festa já está preparada, são muitos convidados
+Mas poucos decididos
+A festa já está preparada
+Muitos são chamados, mas poucos escolhidos
+
+Ouvi o rei me chamar, se és bom ou mau, não importa
+Não quero ser como os outros
+Eu vou entrar, vou festejar de vestes novas
+
+Dá-me tuas vestes, dá-me tuas vestes, dá-me tuas vestes Jesus  (2x)
+
+Senhor eu sei que eu não mereço, mas hoje com tuas vestes estou
+Mas hoje com tuas vestes estou
+Agora eu já posso entrar na ceia que você preparou
+Na ceia que você preparou
+
+Ouvi o rei me chamar, se és bom ou mau, não importa
+Não quero ser como os outros
+Eu vou entrar, vou festejar de vestes novas
+
+Dá-me tuas vestes, dá-me tuas vestes, dá-me tuas vestes Jesus  (2x)
+
+E este banquete é Tua presença, Deus
+E se Tuas vestes eu tiver
+Em Tua presença habitarei  (2x)`
+    },
+    {
+      id: 'seed_m8',
+      titulo: 'Mãe da Fé',
+      artista: 'Anjos de Resgate',
+      tom: 'C',
+      cifra: `[Intro] C  Am  Bb  F
+
+C          Am      Bb        F
+Não há no mundo ninguém que não precise de uma mãe
+C          Am        Bb          F
+Até o filho de Deus teve os carinhos de uma mãe
+
+Am             Em         F
+Mãe que quando fala nos traz tanta paz com sua voz
+Am        G/B       C          F
+Mãe que só sabe amar, senhora que trouxe o céu a nós
+Nossa mãe... oh
+
+C      Am        Bb         F
+Nossa Senhora do céu, nossa rainha e mãe da fé!
+C      Am        Bb       F
+Nossa Senhora do céu, ensina-nos a estar de pé!
+
+C          Am        Bb        F
+Na plenitude dos tempos, Deus quis nascer dessa mulher
+C         Am          Bb           F
+E toda graça do céu passa por nossa mãe da fé
+
+Am             Em         F
+Mãe que quando fala nos traz tanta paz com sua voz
+Am        G/B       C          F
+Mãe que só sabe amar, senhora que trouxe o céu a nós
+Nossa mãe... oh
+
+C      Am        Bb         F
+Nossa Senhora do céu, nossa rainha e mãe da fé!
+C      Am        Bb       F
+Nossa Senhora do céu, ensina-nos a estar de pé!
+
+C      Am        Bb       F
+Mãe de Deus, mãe do céu, mãe da fé e nossa mãe  (2x)`,
+      letra: `Não há no mundo ninguém que não precise de uma mãe
+Até o filho de Deus teve os carinhos de uma mãe
+
+Mãe que quando fala nos traz tanta paz com sua voz
+Mãe que só sabe amar, senhora que trouxe o céu a nós
+Nossa mãe... oh
+
+Nossa Senhora do céu, nossa rainha e mãe da fé!
+Nossa Senhora do céu, ensina-nos a estar de pé!
+
+Na plenitude dos tempos, Deus quis nascer dessa mulher
+E toda graça do céu passa por nossa mãe da fé
+
+Mãe que quando fala nos traz tanta paz com sua voz
+Mãe que só sabe amar, senhora que trouxe o céu a nós
+Nossa mãe... oh
+
+Nossa Senhora do céu, nossa rainha e mãe da fé!
+Nossa Senhora do céu, ensina-nos a estar de pé!
+
+Mãe de Deus, mãe do céu, mãe da fé e nossa mãe  (2x)`
+    }
+  ];
+
+  // ── Catálogo Missa 07/07 ──
+  const catId = 'seed_cat1';
+  const momentos = MOMENTOS_PADRAO.map(m => {
+    const musicasDoMomento = [];
+    if (m.id === 'entrada')        musicasDoMomento.push('seed_m1');
+    if (m.id === 'ato-penitencial') musicasDoMomento.push('seed_m2');
+    if (m.id === 'gloria')         musicasDoMomento.push('seed_m3');
+    if (m.id === 'aclamacao')      musicasDoMomento.push('seed_m4');
+    if (m.id === 'ofertorio')      musicasDoMomento.push('seed_m5');
+    if (m.id === 'santo')          musicasDoMomento.push('seed_m6');
+    if (m.id === 'comunhao')       musicasDoMomento.push('seed_m7');
+    if (m.id === 'encerramento')   musicasDoMomento.push('seed_m8');
+    return { ...m, ativo: true, musicas: musicasDoMomento };
+  });
+
+  state.repertorio = musicas;
+  state.tiposCelebracao = TIPOS_CELEBRACAO_PADRAO.map(t => ({ ...t }));
+  state.catalogos = [{ id: catId, nome: 'Missa 07/07', tipoId: 'missa-dominical', momentos }];
+  state.catalogoAtivo = catId;
+  saveState();
+}
+
+function uid() { return Math.random().toString(36).slice(2,10); }
+
+
+// ═══════════════════════════════════════════════════════
+// TIPOS DE CELEBRAÇÃO
+// ═══════════════════════════════════════════════════════
+
+function normalizarTiposCelebracao() {
+  if (!Array.isArray(state.tiposCelebracao) || state.tiposCelebracao.length === 0) {
+    state.tiposCelebracao = TIPOS_CELEBRACAO_PADRAO.map(t => ({ ...t }));
+  }
+  state.tiposCelebracao = state.tiposCelebracao
+    .filter(t => t && t.id && t.nome)
+    .map(t => ({ id: String(t.id), nome: String(t.nome), icon: t.icon || '📌' }));
+  if (state.tiposCelebracao.length === 0) {
+    state.tiposCelebracao = [{ id: 'outros', nome: 'Outros', icon: '📌' }];
+  }
+  const defaultTipo = state.tiposCelebracao[0].id;
+  state.catalogos.forEach(cat => {
+    if (!cat.tipoId || !state.tiposCelebracao.some(t => t.id === cat.tipoId)) cat.tipoId = defaultTipo;
+  });
+}
+
+function getTipoCelebracao(tipoId) {
+  normalizarTiposCelebracao();
+  return state.tiposCelebracao.find(t => t.id === tipoId) || state.tiposCelebracao[0];
+}
+
+function getTipoOptions(selectedId) {
+  normalizarTiposCelebracao();
+  return state.tiposCelebracao.map(t => `<option value="${t.id}" ${t.id === selectedId ? 'selected' : ''}>${t.icon} ${escapeHtml(t.nome)}</option>`).join('');
+}
+
+function preencherSelectTiposCelebracao(selectId, selectedId) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  normalizarTiposCelebracao();
+  const escolhido = selectedId || state.tiposCelebracao[0].id;
+  select.innerHTML = getTipoOptions(escolhido);
+}
+
+function novoTipoCelebracao() {
+  const nome = prompt('Nome do novo tipo de celebração:');
+  if (!nome || !nome.trim()) return;
+  const icon = prompt('Ícone para este tipo (opcional):', '📌') || '📌';
+  const id = 'tipo_' + uid();
+  state.tiposCelebracao.push({ id, nome: nome.trim(), icon: icon.trim() || '📌' });
+  saveState();
+  renderSidebar();
+  renderGerenciar();
+  toast('✅ Tipo de celebração criado!');
+}
+
+function renomearTipoCelebracao(id) {
+  const tipo = state.tiposCelebracao.find(t => t.id === id);
+  if (!tipo) return;
+  const novoNome = prompt('Novo nome do tipo de celebração:', tipo.nome);
+  if (!novoNome || !novoNome.trim()) return;
+  const novoIcon = prompt('Ícone deste tipo:', tipo.icon || '📌') || tipo.icon || '📌';
+  tipo.nome = novoNome.trim();
+  tipo.icon = novoIcon.trim() || '📌';
+  saveState();
+  renderSidebar();
+  renderCatalogoContent();
+  renderGerenciar();
+  toast('✏️ Tipo atualizado!');
+}
+
+function excluirTipoCelebracao(id) {
+  normalizarTiposCelebracao();
+  if (state.tiposCelebracao.length <= 1) { toast('⚠️ Mantenha ao menos um tipo de celebração'); return; }
+  const tipo = state.tiposCelebracao.find(t => t.id === id);
+  if (!tipo) return;
+  const vinculadas = state.catalogos.filter(c => c.tipoId === id).length;
+  const msg = vinculadas > 0
+    ? `Excluir o tipo "${tipo.nome}"? ${vinculadas} celebração${vinculadas!==1?'ões serão movidas para outro tipo.':' será movida para outro tipo.'}`
+    : `Excluir o tipo "${tipo.nome}"?`;
+  if (!confirm(msg)) return;
+  const fallback = state.tiposCelebracao.find(t => t.id !== id)?.id;
+  state.catalogos.forEach(cat => { if (cat.tipoId === id) cat.tipoId = fallback; });
+  state.tiposCelebracao = state.tiposCelebracao.filter(t => t.id !== id);
+  saveState();
+  renderSidebar();
+  renderCatalogoContent();
+  renderGerenciar();
+  toast('🗑 Tipo excluído!');
+}
+
+function alterarTipoCatalogo(catId, tipoId) {
+  const cat = state.catalogos.find(c => c.id === catId);
+  if (!cat) return;
+  cat.tipoId = tipoId;
+  saveState();
+  renderSidebar();
+  renderCatalogoContent();
+  renderGerenciar();
+  toast('🏷️ Tipo da celebração atualizado!');
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+
+function showPage(page) {
+  document.getElementById('view-home').style.display = page === 'home' ? 'block' : 'none';
+  document.getElementById('view-catalogo').style.display = page === 'catalogos' ? 'block' : 'none';
+  document.getElementById('view-repertorio').style.display = page === 'repertorio' ? 'block' : 'none';
+  document.getElementById('sidebar').style.display = page === 'catalogos' ? '' : 'none';
+  document.querySelectorAll('.nav-btn').forEach((b) => {
+    const click = b.getAttribute('onclick') || '';
+    b.classList.toggle('active', click.includes(`'${page}'`));
+  });
+  if (page === 'catalogos') renderSidebar();
+  if (page === 'repertorio') renderRepertorio();
+}
+
+function switchRepTab(tab) {
+  document.getElementById('rep-tab-todas').style.display = tab === 'todas' ? '' : 'none';
+  document.getElementById('rep-tab-favoritas').style.display = tab === 'favoritas' ? '' : 'none';
+  document.getElementById('rep-tab-adicionar').style.display = tab === 'adicionar' ? '' : 'none';
+  document.querySelectorAll('#rep-tabs .page-tab').forEach((b) => {
+    b.classList.toggle('active', b.getAttribute('onclick').includes(`'${tab}'`));
+  });
+  if (tab === 'adicionar') {
+    document.getElementById('busca-input').value = '';
+    document.getElementById('busca-resultados').innerHTML = '';
+  }
+  if (tab === 'favoritas') renderFavoritas();
+  if (tab === 'todas') renderRepertorio();
+}
+
+// ═══════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════
+
+function renderSidebar() {
+  normalizarTiposCelebracao();
+  const list = document.getElementById('catalogos-list');
+  list.innerHTML = '';
+  if (state.catalogos.length === 0) {
+    list.innerHTML = '<div style="padding:16px 8px;font-size:12.5px;color:var(--texto-claro);text-align:center;line-height:1.6">Nenhuma celebração ainda.<br>Crie sua primeira! 🎵</div>';
+    renderCatalogoContent();
+    return;
+  }
+
+  state.tiposCelebracao.forEach(tipo => {
+    const cats = state.catalogos.filter(cat => getTipoCelebracao(cat.tipoId).id === tipo.id);
+    if (cats.length === 0) return;
+    const titulo = document.createElement('div');
+    titulo.className = 'tipo-section-title';
+    titulo.textContent = `${tipo.icon} ${tipo.nome}`;
+    list.appendChild(titulo);
+
+    cats.forEach(cat => {
+      const div = document.createElement('div');
+      div.className = 'catalogo-item' + (state.catalogoAtivo === cat.id ? ' active' : '');
+      div.innerHTML = `
+        <span class="cat-icon">✝</span>
+        <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(cat.nome)}</span>
+        <button class="cat-delete" title="Excluir" onclick="event.stopPropagation();excluirCatalogo('${cat.id}')">🗑</button>
+      `;
+      div.onclick = () => { state.catalogoAtivo = cat.id; saveState(); renderSidebar(); renderCatalogoContent(); };
+      list.appendChild(div);
+    });
+  });
+  renderCatalogoContent();
+}
+
+// ═══════════════════════════════════════════════════════
+// CATÁLOGO CONTENT
+// ═══════════════════════════════════════════════════════
+
+function renderCatalogoContent() {
+  const container = document.getElementById('catalogo-content');
+  const cat = state.catalogos.find(c => c.id === state.catalogoAtivo);
+  if (!cat) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🎵</div>
+        <div class="empty-title">Bem-vindo ao Cantoral</div>
+        <div class="empty-sub">Crie sua primeira celebração na barra lateral para organizar o repertório da Santa Missa.</div>
+        <button class="btn btn-primary" onclick="abrirModalNovoCatalogo()">✝ Criar Primeira Celebração</button>
+      </div>
+    `;
+    return;
+  }
+
+  const momentosAtivos = cat.momentos.filter(m => m.ativo);
+  const totalMusicas = momentosAtivos.reduce((s,m) => s + (m.musicas||[]).length, 0);
+  const tipo = getTipoCelebracao(cat.tipoId);
+
+  container.innerHTML = `
+    <div class="cat-header">
+      <div>
+        <div class="cat-header-title">${escapeHtml(cat.nome)}</div>
+        <div class="cat-header-sub"><span class="tipo-badge">${tipo.icon} ${escapeHtml(tipo.nome)}</span> &nbsp; ${momentosAtivos.length} momentos · ${totalMusicas} música${totalMusicas!==1?'s':''}</div>
+      </div>
+      <div class="cat-actions">
+        <button class="btn btn-outline btn-sm" onclick="abrirModalMomentos()">⚙️ Momentos</button>
+        <button class="btn btn-primary btn-sm" onclick="abrirBuscaRapida()">🎵 Adicionar Música</button>
+      </div>
+    </div>
+    <div id="momentos-container"></div>
+  `;
+
+  renderMomentos(cat);
+}
+
+function renderMomentos(cat) {
+  const container = document.getElementById('momentos-container');
+  container.innerHTML = '';
+  const momentosAtivos = cat.momentos.filter(m => m.ativo);
+
+  if (momentosAtivos.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--texto-claro)">Nenhum momento ativo. Configure em ⚙️ Momentos.</div>`;
+    return;
+  }
+
+  momentosAtivos.forEach(momento => {
+    const musicas = momento.musicas || [];
+    const sec = document.createElement('div');
+    sec.className = 'momento-section';
+    sec.innerHTML = `
+      <div class="momento-header" onclick="toggleMomento(this)">
+        <div class="momento-icon">${momento.icon}</div>
+        <div>
+          <div class="momento-nome">${momento.nome}</div>
+          <div class="momento-count">${musicas.length} música${musicas.length!==1?'s':''}</div>
+        </div>
+        <div class="momento-actions">
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirAddMusicaMomento('${cat.id}','${momento.id}')">+ Música</button>
+          <span class="momento-toggle open">▼</span>
+        </div>
+      </div>
+      <div class="momento-body" id="mb-${momento.id}">
+        ${musicas.map(mid => renderMusicaCard(cat.id, momento.id, mid)).join('')}
+        ${musicas.length === 0 ? `<div style="color:var(--texto-claro);font-size:13px;text-align:center;padding:16px 0">Nenhuma música ainda. Clique em "+ Música" para adicionar.</div>` : ''}
+      </div>
+    `;
+    container.appendChild(sec);
+  });
+}
+
+function toggleMomento(header) {
+  const toggle = header.querySelector('.momento-toggle');
+  const body = header.nextElementSibling;
+  const isOpen = toggle.classList.contains('open');
+  toggle.classList.toggle('open', !isOpen);
+  body.style.display = isOpen ? 'none' : '';
+}
+
+function renderMusicaCard(catId, momentoId, musicaId) {
+  const m = state.repertorio.find(r => r.id === musicaId);
+  if (!m) return '';
+  return `
+    <div class="musica-card" onclick="abrirViewer('${m.id}')">
+      <span class="music-icon">🎵</span>
+      <div class="music-info">
+        <div class="music-title">${m.titulo}</div>
+        <div class="music-meta">${m.artista || '—'}</div>
+      </div>
+      <div class="music-actions">
+        <span class="tag-tom" onclick="event.stopPropagation();abrirTranspor('${m.id}')">${m.tom || '?'}</span>
+        <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation();removerMusicaDoCatalogo('${catId}','${momentoId}','${musicaId}')">✕</button>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL: NOVO CATÁLOGO
+// ═══════════════════════════════════════════════════════
+
+function abrirModalNovoCatalogo() {
+  document.getElementById('nc-nome').value = '';
+  preencherSelectTiposCelebracao('nc-tipo');
+  const list = document.getElementById('nc-momentos');
+  list.innerHTML = '';
+  MOMENTOS_PADRAO.forEach(m => {
+    const div = criarMomentoToggleItem(m, true);
+    list.appendChild(div);
+  });
+  abrirModal('modal-catalogo');
+}
+
+function criarMomentoToggleItem(m, ativo) {
+  const div = document.createElement('div');
+  div.className = 'momento-manage-item';
+  div.dataset.id = m.id;
+  div.innerHTML = `
+    <span class="m-icon">${m.icon}</span>
+    <span class="m-name">${m.nome}</span>
+    <button class="checkbox-toggle ${ativo?'on':''}" onclick="this.classList.toggle('on')"></button>
+  `;
+  return div;
+}
+
+function salvarCatalogo() {
+  const nome = document.getElementById('nc-nome').value.trim();
+  const tipoId = document.getElementById('nc-tipo')?.value || state.tiposCelebracao[0]?.id || 'outros';
+  if (!nome) { toast('⚠️ Digite um nome para a celebração'); return; }
+  const items = document.querySelectorAll('#nc-momentos .momento-manage-item');
+  const momentos = MOMENTOS_PADRAO.map(m => {
+    const item = [...items].find(i => i.dataset.id === m.id);
+    const ativo = item?.querySelector('.checkbox-toggle').classList.contains('on') ?? true;
+    return { ...m, ativo, musicas: [] };
+  });
+  const id = uid();
+  state.catalogos.push({ id, nome, tipoId, momentos });
+  state.catalogoAtivo = id;
+  saveState();
+  fecharModal('modal-catalogo');
+  renderSidebar();
+  toast('✝ Celebração criada!');
+}
+
+function excluirCatalogo(id) {
+  if (!confirm('Excluir esta celebração?')) return;
+  state.catalogos = state.catalogos.filter(c => c.id !== id);
+  if (state.catalogoAtivo === id) state.catalogoAtivo = state.catalogos[0]?.id || null;
+  saveState(); renderSidebar(); renderGerenciar();
+}
+
+function renomearCatalogo(id) {
+  const cat = state.catalogos.find(c => c.id === id);
+  if (!cat) return;
+  const novo = prompt('Novo nome da celebração:', cat.nome);
+  if (!novo || !novo.trim()) return;
+  cat.nome = novo.trim();
+  saveState(); renderSidebar(); renderGerenciar();
+  toast('✏️ Celebração renomeada!');
+}
+
+function mostrarGerenciar() {
+  // desktop: mostra no main area
+  document.getElementById('catalogo-content').style.display = 'none';
+  document.getElementById('gerenciar-content').style.display = 'block';
+  renderGerenciar();
+}
+
+function mostrarMissa() {
+  document.getElementById('catalogo-content').style.display = '';
+  document.getElementById('gerenciar-content').style.display = 'none';
+  renderCatalogoContent();
+}
+
+function switchCatTab(tab) {
+  document.getElementById('cat-tab-missa').classList.toggle('active', tab === 'missa');
+  document.getElementById('cat-tab-gerenciar').classList.toggle('active', tab === 'gerenciar');
+  if (tab === 'missa') mostrarMissa();
+  else mostrarGerenciar();
+}
+
+function renderGerenciar() {
+  normalizarTiposCelebracao();
+  const container = document.getElementById('gerenciar-content');
+  if (!container) return;
+
+  const celebracoesHtml = state.catalogos.length === 0 ? `
+    <div style="text-align:center;padding:32px 20px;color:var(--texto-claro);background:white;border-radius:14px;box-shadow:var(--sombra)">
+      <div style="font-size:40px;margin-bottom:12px">✝</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px">Nenhuma celebração ainda</div>
+      <button class="btn btn-primary" onclick="abrirModalNovoCatalogo()">+ Nova Celebração</button>
+    </div>` : `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${state.catalogos.map(cat => {
+        const totalMusicas = cat.momentos.filter(m=>m.ativo).reduce((s,m)=>s+(m.musicas||[]).length,0);
+        const ativos = cat.momentos.filter(m=>m.ativo).length;
+        const tipo = getTipoCelebracao(cat.tipoId);
+        return `<div style="background:white;border-radius:14px;padding:18px 20px;box-shadow:var(--sombra);display:flex;align-items:center;gap:14px;border:1px solid var(--cinza-suave);flex-wrap:wrap">
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--azul-palido),var(--azul-gelo));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${tipo.icon}</div>
+          <div style="flex:1;min-width:190px">
+            <div style="font-weight:700;font-size:14px;color:var(--texto-escuro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(cat.nome)}</div>
+            <div style="font-size:11.5px;color:var(--texto-claro);margin-top:2px">${tipo.icon} ${escapeHtml(tipo.nome)} · ${ativos} momentos · ${totalMusicas} música${totalMusicas!==1?'s':''}</div>
+            <select class="form-select" style="margin-top:8px;max-width:260px;padding:8px 10px;font-size:12px" onchange="alterarTipoCatalogo('${cat.id}', this.value)">${getTipoOptions(cat.tipoId)}</select>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn btn-outline btn-sm" onclick="state.catalogoAtivo='${cat.id}';saveState();mostrarMissa();renderSidebar();" title="Abrir">▶</button>
+            <button class="btn btn-outline btn-sm" onclick="renomearCatalogo('${cat.id}')" title="Renomear">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="excluirCatalogo('${cat.id}')" title="Excluir">🗑</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  container.innerHTML = `
+    <div style="max-width:720px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--azul-palido);gap:12px">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--azul-profundo)">Gerenciar Celebrações</div>
+          <div style="font-size:12px;color:var(--texto-claro);letter-spacing:1px;text-transform:uppercase;margin-top:2px">${state.catalogos.length} celebração${state.catalogos.length!==1?'s':''}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="abrirModalNovoCatalogo()">+ Nova</button>
+      </div>
+
+      ${celebracoesHtml}
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:34px 0 16px;padding-bottom:12px;border-bottom:2px solid var(--azul-palido);gap:12px">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--azul-profundo)">Tipos de Celebração</div>
+          <div style="font-size:12px;color:var(--texto-claro);letter-spacing:1px;text-transform:uppercase;margin-top:2px">${state.tiposCelebracao.length} tipo${state.tiposCelebracao.length!==1?'s':''}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="novoTipoCelebracao()">+ Tipo</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${state.tiposCelebracao.map(tipo => {
+          const total = state.catalogos.filter(c => c.tipoId === tipo.id).length;
+          return `<div class="tipo-manage-card">
+            <div class="tipo-manage-icon">${tipo.icon}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:14px;color:var(--texto-escuro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(tipo.nome)}</div>
+              <div style="font-size:11.5px;color:var(--texto-claro);margin-top:2px">${total} celebração${total!==1?'ões':''}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <button class="btn btn-outline btn-sm" onclick="renomearTipoCelebracao('${tipo.id}')" title="Alterar nome">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="excluirTipoCelebracao('${tipo.id}')" title="Excluir">🗑</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL: GERENCIAR MOMENTOS
+// ═══════════════════════════════════════════════════════
+
+function abrirModalMomentos() {
+  const cat = state.catalogos.find(c => c.id === state.catalogoAtivo);
+  if (!cat) return;
+  const list = document.getElementById('mm-momentos');
+  list.innerHTML = '';
+  MOMENTOS_PADRAO.forEach(m => {
+    const existente = cat.momentos.find(cm => cm.id === m.id);
+    const ativo = existente?.ativo ?? false;
+    const div = criarMomentoToggleItem(m, ativo);
+    list.appendChild(div);
+  });
+  abrirModal('modal-momentos');
+}
+
+function salvarMomentos() {
+  const cat = state.catalogos.find(c => c.id === state.catalogoAtivo);
+  if (!cat) return;
+  const items = document.querySelectorAll('#mm-momentos .momento-manage-item');
+  MOMENTOS_PADRAO.forEach(m => {
+    const item = [...items].find(i => i.dataset.id === m.id);
+    const ativo = item?.querySelector('.checkbox-toggle').classList.contains('on') ?? false;
+    const existente = cat.momentos.find(cm => cm.id === m.id);
+    if (existente) existente.ativo = ativo;
+    else if (ativo) cat.momentos.push({ ...m, ativo: true, musicas: [] });
+  });
+  saveState(); fecharModal('modal-momentos');
+  renderCatalogoContent();
+  toast('⚙️ Momentos atualizados!');
+}
+
+// ═══════════════════════════════════════════════════════
+// API KEY
+// ═══════════════════════════════════════════════════════
+
+function getApiKey() {
+  return localStorage.getItem('cantoral_apikey') || '';
+}
+function abrirModalApiKey() {
+  const key = getApiKey();
+  document.getElementById('apikey-input').value = key;
+  document.getElementById('apikey-status').textContent = key ? '✅ Chave salva.' : 'Nenhuma chave configurada.';
+  document.getElementById('btn-apikey').style.opacity = key ? '1' : '0.6';
+  abrirModal('modal-apikey');
+}
+function salvarApiKey() {
+  const key = document.getElementById('apikey-input').value.trim();
+  if (!key) { toast('⚠️ Cole sua chave antes de salvar'); return; }
+  if (!key.startsWith('sk-ant-')) { toast('⚠️ Chave inválida. Deve começar com sk-ant-'); return; }
+  localStorage.setItem('cantoral_apikey', key);
+  document.getElementById('btn-apikey').style.opacity = '1';
+  fecharModal('modal-apikey');
+  toast('🔑 Chave salva com sucesso!');
+}
+function limparApiKey() {
+  localStorage.removeItem('cantoral_apikey');
+  document.getElementById('apikey-input').value = '';
+  document.getElementById('apikey-status').textContent = 'Chave removida.';
+  document.getElementById('btn-apikey').style.opacity = '0.6';
+  toast('🗑 Chave removida');
+}
+function toggleApiKeyVisibility() {
+  const input = document.getElementById('apikey-input');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+
+
+let buscaTimeout = null;
+let buscaMomentoCtx = null; // {catId, momentoId}
+
+function abrirBuscaRapida() {
+  showPage('repertorio');
+  switchRepTab('adicionar');
+}
+
+function abrirAddMusicaMomento(catId, momentoId) {
+  buscaMomentoCtx = { catId, momentoId };
+  showPage('repertorio');
+  switchRepTab('adicionar');
+}
+
+function escapeHtml(texto) {
+  return String(texto || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function abrirBuscaInternet(tipo) {
+  const termo = (document.getElementById('busca-input').value || '').trim();
+  if (!termo) { toast('Digite o nome da música primeiro.'); return; }
+  const q = encodeURIComponent(termo + ' cifra letra católica');
+  const url = tipo === 'cifraclub'
+    ? `https://www.google.com/search?q=site%3Acifraclub.com.br+${q}`
+    : `https://www.google.com/search?q=${q}`;
+  window.open(url, '_blank');
+}
+
+function abrirNovaManualComBusca() {
+  const termo = (document.getElementById('busca-input').value || '').trim();
+  abrirNovaManual();
+  if (termo) document.getElementById('nm-titulo').value = termo;
+}
+
+function buscarMusica(query) {
+  const container = document.getElementById('busca-resultados');
+  clearTimeout(buscaTimeout);
+  const termoOriginal = (query || '').trim();
+  const termo = termoOriginal.toLowerCase();
+  if (termo.length < 2) { container.innerHTML = ''; return; }
+
+  buscaTimeout = setTimeout(() => {
+    const resultados = state.repertorio.filter(m => {
+      const texto = `${m.titulo || ''} ${m.artista || ''}`.toLowerCase();
+      return texto.includes(termo);
+    });
+
+    const resultadosHtml = resultados.length ? resultados.map(m => `
+        <div class="busca-item" onclick="abrirViewer('${m.id}')">
+          <div style="font-size:20px">🎵</div>
+          <div>
+            <div class="busca-item-title">${escapeHtml(m.titulo)}</div>
+            <div class="busca-item-meta">${escapeHtml(m.artista || 'Desconhecido')} · Tom: ${escapeHtml(m.tom || '?')}</div>
+          </div>
+          <div style="margin-left:auto"><button class="btn btn-primary btn-sm" onclick="event.stopPropagation();prepararAddMusicaExistente('${m.id}')">Usar</button></div>
+        </div>
+      `).join('') : `<div class="busca-loading" style="text-align:left;padding:16px">
+        Nenhuma música encontrada no repertório local.
+      </div>`;
+
+    container.innerHTML = `<div class="busca-resultado">
+      ${resultadosHtml}
+      <div class="busca-item" style="align-items:flex-start">
+        <div style="font-size:20px">🌐</div>
+        <div style="flex:1">
+          <div class="busca-item-title">Buscar na internet</div>
+          <div class="busca-item-meta">Abre uma nova aba para você localizar letra/cifra e depois cadastrar manualmente.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirBuscaInternet('google')">Google</button>
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirBuscaInternet('cifraclub')">CifraClub</button>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();abrirNovaManualComBusca()">Cadastrar manualmente</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }, 200);
+}
+
+function selecionarMusicaBusca(jsonStr) {
+  const m = JSON.parse(jsonStr);
+  // Verificar se já existe
+  const existente = state.repertorio.find(r => r.titulo.toLowerCase() === m.titulo.toLowerCase());
+  if (existente) {
+    toast('ℹ️ Música já está no repertório!');
+    if (buscaMomentoCtx) {
+      prepararAddMusica(existente.id);
+    } else {
+      abrirViewer(existente.id);
+    }
+    return;
+  }
+  const id = uid();
+  const musica = { id, titulo: m.titulo, artista: m.artista||'', tom: m.tom||'C', cifra: m.cifra||'', letra: m.letra||'', favorita: false };
+  state.repertorio.push(musica);
+  saveState();
+  toast('🎵 Música adicionada ao repertório!');
+
+  if (buscaMomentoCtx) {
+    prepararAddMusica(id);
+  } else {
+    renderRepertorio();
+    switchRepTab('todas');
+  }
+  buscaMomentoCtx = null;
+}
+
+function prepararAddMusica(musicaId) {
+  if (!buscaMomentoCtx) {
+    // Abre modal genérico de seleção de momento
+    abrirModalAddMusica(musicaId);
+    return;
+  }
+  const { catId, momentoId } = buscaMomentoCtx;
+  adicionarMusicaAoCatalogo(catId, momentoId, musicaId);
+  buscaMomentoCtx = null;
+  showPage('catalogos');
+}
+
+function abrirModalAddMusica(musicaId) {
+  const m = state.repertorio.find(r => r.id === musicaId);
+  if (!m) return;
+  document.getElementById('add-musica-info').innerHTML = `<strong>🎵 ${m.titulo}</strong><br><span style="color:var(--texto-claro)">${m.artista}</span>`;
+  const sel = document.getElementById('am-momento');
+  sel.innerHTML = '';
+  state.catalogos.forEach(cat => {
+    cat.momentos.filter(mt => mt.ativo).forEach(mt => {
+      const opt = document.createElement('option');
+      opt.value = `${cat.id}::${mt.id}`;
+      opt.textContent = `${cat.nome} → ${mt.nome}`;
+      sel.appendChild(opt);
+    });
+  });
+  sel.dataset.musicaId = musicaId;
+  abrirModal('modal-add-musica');
+}
+
+function confirmarAddMusica() {
+  const sel = document.getElementById('am-momento');
+  const [catId, momentoId] = sel.value.split('::');
+  const musicaId = sel.dataset.musicaId;
+  adicionarMusicaAoCatalogo(catId, momentoId, musicaId);
+  fecharModal('modal-add-musica');
+  showPage('catalogos');
+}
+
+function adicionarMusicaAoCatalogo(catId, momentoId, musicaId) {
+  const cat = state.catalogos.find(c => c.id === catId);
+  if (!cat) return;
+  const momento = cat.momentos.find(m => m.id === momentoId);
+  if (!momento) return;
+  if (!momento.musicas) momento.musicas = [];
+  if (!momento.musicas.includes(musicaId)) {
+    momento.musicas.push(musicaId);
+    saveState();
+    toast('✅ Música adicionada!');
+    renderCatalogoContent();
+  } else {
+    toast('ℹ️ Música já está neste momento');
+  }
+}
+
+function removerMusicaDoCatalogo(catId, momentoId, musicaId) {
+  const cat = state.catalogos.find(c => c.id === catId);
+  const momento = cat?.momentos.find(m => m.id === momentoId);
+  if (!momento) return;
+  momento.musicas = momento.musicas.filter(id => id !== musicaId);
+  saveState(); renderCatalogoContent();
+  toast('🗑 Música removida do momento');
+}
+
+function abrirNovaManual() {
+  document.getElementById('nm-titulo').value = '';
+  document.getElementById('nm-artista').value = '';
+  document.getElementById('nm-tom').value = '';
+  document.getElementById('nm-cifra').value = '';
+  abrirModal('modal-nova-musica');
+}
+
+function salvarMusicaManual() {
+  const titulo = document.getElementById('nm-titulo').value.trim();
+  if (!titulo) { toast('⚠️ Digite o título da música'); return; }
+  const id = uid();
+  const musica = {
+    id, titulo,
+    artista: document.getElementById('nm-artista').value.trim(),
+    tom: document.getElementById('nm-tom').value.trim() || 'C',
+    cifra: document.getElementById('nm-cifra').value,
+    letra: '',
+    favorita: false
+  };
+  state.repertorio.push(musica);
+  saveState();
+  fecharModal('modal-nova-musica');
+  toast('✅ Música salva!');
+  if (buscaMomentoCtx) {
+    prepararAddMusica(id);
+    buscaMomentoCtx = null;
+  } else {
+    renderRepertorio(); switchRepTab('todas');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// REPERTÓRIO
+// ═══════════════════════════════════════════════════════
+
+function montarFiltrosMomento() {
+  ['filtro-momento-todas', 'filtro-momento-favoritas'].forEach(selectId => {
+    const select = document.getElementById(selectId);
+    if (!select || select.dataset.montado === 'true') return;
+    MOMENTOS_PADRAO.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = `${m.icon} ${m.nome}`;
+      select.appendChild(opt);
+    });
+    select.dataset.montado = 'true';
+  });
+}
+
+function getMomentosDaMusica(musicaId) {
+  const encontrados = [];
+  state.catalogos.forEach(cat => {
+    (cat.momentos || []).forEach(mt => {
+      if ((mt.musicas || []).includes(musicaId) && !encontrados.some(m => m.id === mt.id)) {
+        encontrados.push({ id: mt.id, nome: mt.nome });
+      }
+    });
+  });
+  return encontrados;
+}
+
+
+function renderRepertorio() {
+  montarFiltrosMomento();
+  renderListaMusicas('rep-grid', state.repertorio, 'Repertório vazio', 'Busque músicas na aba "Adicionar Nova"');
+  aplicarFiltrosRepertorio();
+}
+
+function renderFavoritas() {
+  montarFiltrosMomento();
+  const favoritas = state.repertorio.filter(m => m.favorita);
+  renderListaMusicas('fav-grid', favoritas, 'Nenhuma música favorita', 'Toque na estrela das músicas para adicioná-las aqui.');
+  aplicarFiltrosFavoritas();
+}
+
+function renderListaMusicas(gridId, musicas, emptyTitle, emptySub) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  if (musicas.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--texto-claro)">
+      <div style="font-size:48px;margin-bottom:16px">⭐</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px">${emptyTitle}</div>
+      <div style="font-size:14px">${emptySub}</div>
+    </div>`;
+    return;
+  }
+  musicas.forEach(m => {
+    const usosObj = getMomentosDaMusica(m.id);
+    const usos = usosObj.map(u => u.nome);
+    const card = document.createElement('div');
+    card.className = 'rep-card';
+    card.dataset.search = normalizarTexto([m.titulo, m.artista || '', m.tom || '', usos.join(' ')].join(' '));
+    card.dataset.momentos = usosObj.map(u => u.id).join(',');
+    card.innerHTML = `
+      <div class="rep-card-top">
+        <div class="rep-card-title">${m.titulo}</div>
+        <button class="fav-btn ${m.favorita ? 'active' : ''}" title="${m.favorita ? 'Remover das favoritas' : 'Adicionar às favoritas'}" onclick="event.stopPropagation();toggleFavorita('${m.id}')">${m.favorita ? '★' : '☆'}</button>
+      </div>
+      <div class="rep-card-meta">
+        <span>${m.artista || '—'}</span>
+        <span class="rep-card-tom">${m.tom || '?'}</span>
+      </div>
+      ${usos.length ? `<div class="rep-card-momentos">${usos.slice(0,3).map(u => `<span class="rep-momento-tag">${u}</span>`).join('')}${usos.length>3?`<span class="rep-momento-tag">+${usos.length-3}</span>`:''}</div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="abrirViewer('${m.id}')">Ver Cifra</button>
+        <button class="btn btn-ghost btn-sm" onclick="abrirModalAddMusica('${m.id}')">+ Celebração</button>
+        <button class="btn btn-danger btn-sm" onclick="excluirMusica('${m.id}')">🗑</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function toggleFavorita(id) {
+  const musica = state.repertorio.find(m => m.id === id);
+  if (!musica) return;
+  musica.favorita = !musica.favorita;
+  saveState();
+  renderRepertorio();
+  renderFavoritas();
+  toast(musica.favorita ? '⭐ Música adicionada às favoritas' : '☆ Música removida das favoritas');
+}
+
+function filtrarRepertorio(q) {
+  aplicarFiltrosRepertorio();
+}
+
+function filtrarFavoritas(q) {
+  aplicarFiltrosFavoritas();
+}
+
+function aplicarFiltrosRepertorio() {
+  const q = document.getElementById('rep-search-input')?.value || '';
+  const momento = document.getElementById('filtro-momento-todas')?.value || '';
+  filtrarCards('rep-grid', q, momento);
+}
+
+function aplicarFiltrosFavoritas() {
+  const q = document.getElementById('fav-search-input')?.value || '';
+  const momento = document.getElementById('filtro-momento-favoritas')?.value || '';
+  filtrarCards('fav-grid', q, momento);
+}
+
+function filtrarCards(gridId, q, momentoId) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  const cards = grid.querySelectorAll('.rep-card');
+  const termo = normalizarTexto(q);
+  cards.forEach(card => {
+    const search = card.dataset.search || normalizarTexto(card.textContent);
+    const momentos = (card.dataset.momentos || '').split(',').filter(Boolean);
+    const matchTexto = !termo || search.includes(termo);
+    const matchMomento = !momentoId || momentos.includes(momentoId);
+    card.style.display = (matchTexto && matchMomento) ? '' : 'none';
+  });
+}
+
+function excluirMusica(id) {
+  if (!confirm('Remover do repertório? Ela será removida de todas as celebrações.')) return;
+  state.repertorio = state.repertorio.filter(m => m.id !== id);
+  state.catalogos.forEach(cat => cat.momentos.forEach(mt => {
+    if (mt.musicas) mt.musicas = mt.musicas.filter(mid => mid !== id);
+  }));
+  saveState(); renderRepertorio(); renderFavoritas();
+  toast('🗑 Música removida');
+}
+
+// ═══════════════════════════════════════════════════════
+// VIEWER / TRANSPOSIÇÃO
+// ═══════════════════════════════════════════════════════
+
+let viewerState = { musica: null, semitones: 0, mode: 'cifra', fontSize: 14 };
+
+function abrirViewer(id) {
+  const m = state.repertorio.find(r => r.id === id);
+  if (!m) return;
+  viewerState.musica = m;
+  viewerState.semitones = 0;
+  viewerState.mode = 'cifra';
+  viewerState.fontSize = 14;
+  document.getElementById('viewer-content').style.fontSize = '14px';
+  document.getElementById('viewer-titulo').textContent = m.titulo;
+  document.getElementById('viewer-artista').textContent = m.artista || '';
+  document.getElementById('vt-cifra').classList.add('active');
+  document.getElementById('vt-letra').classList.remove('active');
+  atualizarViewer();
+  abrirModal('modal-viewer');
+}
+
+function abrirTranspor(id) {
+  abrirViewer(id);
+}
+
+function atualizarViewer() {
+  const m = viewerState.musica;
+  const semitones = viewerState.semitones;
+  const tomBase = parseTom(m.tom || 'C');
+  const tomAtual = TONS[(tomBase + semitones + 12*10) % 12];
+  document.getElementById('viewer-tom').textContent = TONS_PT[tomAtual] || tomAtual;
+
+  const content = document.getElementById('viewer-content');
+
+  if (viewerState.mode === 'letra') {
+    content.className = 'musica-content letra-only';
+    content.textContent = m.letra || extrairLetra(m.cifra);
+    return;
+  }
+
+  content.className = 'musica-content';
+  if (!m.cifra) {
+    content.textContent = m.letra || 'Sem conteúdo';
+    return;
+  }
+
+  const linhas = m.cifra.split('\n');
+  content.innerHTML = linhas.map(linha => {
+    if (ehLinhaDeCifra(linha)) {
+      return `<span class="cifra-line">${transporLinha(linha, semitones)}</span>`;
+    }
+    return escapeHtml(linha);
+  }).join('\n');
+}
+
+function transpor(delta) {
+  viewerState.semitones += delta;
+  atualizarViewer();
+}
+
+function setViewMode(mode) {
+  viewerState.mode = mode;
+  document.getElementById('vt-cifra').classList.toggle('active', mode === 'cifra');
+  document.getElementById('vt-letra').classList.toggle('active', mode === 'letra');
+  atualizarViewer();
+}
+
+function parseTom(tom) {
+  const upper = tom.toUpperCase().replace('M','').replace('MIN','').replace('MAJ','').trim();
+  const idx = TONS.findIndex(t => t === upper);
+  if (idx >= 0) return idx;
+  // pt-br
+  const map = {'DÓ':0,'DO':0,'RÉ':2,'RE':2,'MI':4,'FÁ':5,'FA':5,'SOL':7,'LÁ':9,'LA':9,'SI':11};
+  for (const [k,v] of Object.entries(map)) { if (upper.startsWith(k)) return v; }
+  return 0;
+}
+
+const CIFRA_REGEX = /\b([A-G])(b|#)?(m|M|maj|min|dim|aug|sus|add)?\d*([/][A-G](b|#)?)?\b/g;
+
+function ehLinhaDeCifra(linha) {
+  const matches = linha.match(CIFRA_REGEX) || [];
+  const words = linha.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return false;
+  const cifraRatio = matches.length / words.length;
+  return cifraRatio > 0.5 && matches.length > 0;
+}
+
+function transporLinha(linha, semitones) {
+  return linha.replace(CIFRA_REGEX, (match, note, acc, qual, ...rest) => {
+    const full = note + (acc||'');
+    const idx = TONS.indexOf(full);
+    if (idx < 0) return match;
+    const novoIdx = (idx + semitones + 120) % 12;
+    const newNote = TONS[novoIdx];
+    const suffix = match.slice(full.length);
+    return newNote + suffix;
+  });
+}
+
+function extrairLetra(cifra) {
+  if (!cifra) return '';
+  return cifra.split('\n').filter(l => !ehLinhaDeCifra(l)).join('\n');
+}
+
+function mudarFonte(delta) {
+  viewerState.fontSize = Math.min(26, Math.max(10, viewerState.fontSize + delta));
+  document.getElementById('viewer-content').style.fontSize = viewerState.fontSize + 'px';
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL UTILS
+// ═══════════════════════════════════════════════════════
+
+function abrirModal(id) { document.getElementById(id).classList.add('open'); }
+function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Fechar ao clicar no overlay
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+
+function toast(msg) {
+  const area = document.getElementById('toast-area');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  area.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+
+
+
+function normalizarTexto(txt) {
+  return String(txt || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .trim();
+}
+
+// ═══════════════════════════════════════════════════════
+// MIGRAÇÕES / CONTEÚDO PADRÃO
+// ═══════════════════════════════════════════════════════
+
+function garantirMomentoAdoracao() {
+  state.catalogos.forEach(cat => {
+    if (!cat.momentos) cat.momentos = [];
+    if (!cat.momentos.some(m => m.id === 'adoracao')) {
+      const idx = cat.momentos.findIndex(m => m.id === 'encerramento');
+      const momento = { id: 'adoracao', nome: 'Adoração', icon: '☀️', ativo: false, musicas: [] };
+      if (idx >= 0) cat.momentos.splice(idx, 0, momento);
+      else cat.momentos.push(momento);
+    }
+  });
+}
+
+function garantirMusicaTaoSublime() {
+  const existente = state.repertorio.find(m => normalizarTexto(m.titulo) === normalizarTexto('Tão Sublime Sacramento'));
+  if (existente) {
+    if (existente.favorita === undefined) existente.favorita = false;
+    return existente.id;
+  }
+  const novaMusica = {
+    id: 'seed_tao_sublime_sacramento',
+    titulo: 'Tão Sublime Sacramento',
+    artista: 'Tradicional / São Tomás de Aquino',
+    tom: 'D',
+    favorita: false,
+    cifra: `[Intro] D  A7  D
+
+D              A7       D
+Tão sublime Sacramento
+G        D       A7
+Adoremos neste altar
+D              A7       D
+Pois o Antigo Testamento
+G        D    A7   D
+Deu ao Novo o seu lugar
+
+D              A7       D
+Venha a fé por suplemento
+G        D       A7
+Os sentidos completar
+D              A7       D
+Venha a fé por suplemento
+G        D    A7   D
+Os sentidos completar
+
+D              A7       D
+Ao eterno Pai cantemos
+G        D       A7
+E a Jesus, o Salvador
+D              A7       D
+Ao Espírito exaltemos
+G        D    A7   D
+Na Trindade eterno amor
+
+D              A7       D
+Ao Deus uno e trino demos
+G        D       A7
+A alegria do louvor
+D              A7       D
+Ao Deus uno e trino demos
+G        D    A7   D
+A alegria do louvor
+
+D  A7  D
+Amém`,
+    letra: `Tão sublime Sacramento
+Adoremos neste altar
+Pois o Antigo Testamento
+Deu ao Novo o seu lugar
+
+Venha a fé por suplemento
+Os sentidos completar
+Venha a fé por suplemento
+Os sentidos completar
+
+Ao eterno Pai cantemos
+E a Jesus, o Salvador
+Ao Espírito exaltemos
+Na Trindade eterno amor
+
+Ao Deus uno e trino demos
+A alegria do louvor
+Ao Deus uno e trino demos
+A alegria do louvor
+
+Amém`
+  };
+  state.repertorio.push(novaMusica);
+  return novaMusica.id;
+}
+
+function vincularTaoSublimeAoMomentoAdoracao(musicaId) {
+  if (!musicaId) return;
+  state.catalogos.forEach(cat => {
+    const momento = (cat.momentos || []).find(m => m.id === 'adoracao');
+    if (momento) {
+      momento.ativo = true;
+      if (!Array.isArray(momento.musicas)) momento.musicas = [];
+      if (!momento.musicas.includes(musicaId)) momento.musicas.push(musicaId);
+    }
+  });
+}
+
+function aplicarMigracoes() {
+  normalizarTiposCelebracao();
+  garantirMomentoAdoracao();
+  const musicaId = garantirMusicaTaoSublime();
+  vincularTaoSublimeAoMomentoAdoracao(musicaId);
+  saveState();
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+
+loadState();
+seedDemo();
+aplicarMigracoes();
+montarFiltrosMomento();
+showPage('home');
+// Indicar visualmente se a chave está configurada
+</script>
+</body>
+</html>
