@@ -756,7 +756,7 @@
           <div class="home-card-text">Crie um novo catálogo para a próxima missa e escolha os momentos litúrgicos desejados.</div>
         </div>
       </div>
-      <div class="app-version">Cantoral v1.3.0 · Busca web guiada · Tipos reorganizados</div>
+      <div class="app-version">Cantoral v1.4.0 · Busca automática Vercel · Importação de músicas</div>
     </div>
 
     <!-- VIEW: CATALOGOS -->
@@ -2241,9 +2241,13 @@ function abrirNovaManualComBusca() {
   if (termo) document.getElementById('nm-titulo').value = termo;
 }
 
+const CANTORAL_API_BUSCA_URL = 'https://cantoral-api.vercel.app/api/buscar-musica';
+let resultadosInternetCache = [];
+
 function buscarMusica(query) {
   const container = document.getElementById('busca-resultados');
   clearTimeout(buscaTimeout);
+  resultadosInternetCache = [];
   const termoOriginal = (query || '').trim();
   const termo = termoOriginal.toLowerCase();
   if (termo.length < 2) { container.innerHTML = ''; return; }
@@ -2263,7 +2267,7 @@ function buscarMusica(query) {
             <div class="busca-item-title">${escapeHtml(m.titulo)}</div>
             <div class="busca-item-meta">${escapeHtml(m.artista || 'Desconhecido')} · Tom: ${escapeHtml(m.tom || '?')}</div>
           </div>
-          <div style="margin-left:auto"><button class="btn btn-primary btn-sm" onclick="event.stopPropagation();prepararAddMusicaExistente('${m.id}')">Usar</button></div>
+          <div style="margin-left:auto"><button class="btn btn-primary btn-sm" onclick="event.stopPropagation();prepararAddMusica('${m.id}')">Usar</button></div>
         </div>
       `).join('') : `<div class="busca-loading" style="text-align:left;padding:16px">
         Nenhuma música encontrada no repertório local.
@@ -2272,22 +2276,153 @@ function buscarMusica(query) {
     container.innerHTML = `<div class="busca-resultado">
       ${resultadosHtml}
       <div class="busca-item" style="align-items:flex-start">
-        <div style="font-size:20px">🌐</div>
+        <div style="font-size:20px">🤖</div>
         <div style="flex:1">
-          <div class="busca-item-title">Buscar na internet</div>
-          <div class="busca-item-meta">Abre uma nova aba para você localizar letra/cifra e depois cadastrar manualmente.</div>
+          <div class="busca-item-title">Busca automática na internet</div>
+          <div class="busca-item-meta">Consulta sua API na Vercel e permite importar músicas direto para o repertório.</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();buscarMusicaInternetAutomatica()">✨ Buscar automaticamente</button>
             <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirBuscaInternet('google')">Google</button>
             <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirBuscaInternet('cifraclub')">CifraClub</button>
             <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirBuscaInternet('letras')">Letras.mus.br</button>
             <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirBuscaInternet('youtube')">YouTube</button>
             <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();copiarTermoBuscaInternet()">Copiar nome</button>
-            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();abrirNovaManualComBusca()">Cadastrar manualmente</button>
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirNovaManualComBusca()">Cadastrar manualmente</button>
           </div>
+          <div id="busca-internet-resultados" style="margin-top:12px"></div>
         </div>
       </div>
     </div>`;
   }, 200);
+}
+
+function resolverMomentoId(valor) {
+  const n = normalizarTexto(valor || '');
+  if (n.includes('entrada')) return 'entrada';
+  if (n.includes('penitencial') || n.includes('kyrie') || n.includes('piedade')) return 'ato-penitencial';
+  if (n.includes('gloria')) return 'gloria';
+  if (n.includes('salmo')) return 'salmo';
+  if (n.includes('aclamacao') || n.includes('evangelho') || n.includes('aleluia')) return 'aclamacao';
+  if (n.includes('ofert')) return 'ofertorio';
+  if (n.includes('santo')) return 'santo';
+  if (n.includes('consagracao')) return 'consagracao';
+  if (n.includes('pai nosso')) return 'pai-nosso';
+  if (n.includes('cordeiro')) return 'cordeiro';
+  if (n.includes('comunhao') || n.includes('eucarist')) return 'comunhao';
+  if (n.includes('gracas') || n.includes('gratidao')) return 'acao-gracas';
+  if (n.includes('adoracao') || n.includes('santissimo')) return 'adoracao';
+  if (n.includes('encerramento') || n.includes('final') || n.includes('saida')) return 'encerramento';
+  return '';
+}
+
+function resolverTempoId(valor) {
+  const n = normalizarTexto(valor || '');
+  if (n.includes('advento')) return 'advento';
+  if (n.includes('natal')) return 'natal';
+  if (n.includes('quaresma')) return 'quaresma';
+  if (n.includes('pascoa')) return 'pascoa';
+  if (n.includes('mariano') || n.includes('maria')) return 'mariano';
+  if (n.includes('santissimo') || n.includes('eucarist')) return 'santissimo';
+  if (n.includes('tempo comum') || n.includes('comum')) return 'tempo-comum';
+  return 'tempo-comum';
+}
+
+async function buscarMusicaInternetAutomatica() {
+  const termo = (document.getElementById('busca-input').value || '').trim();
+  const alvo = document.getElementById('busca-internet-resultados');
+  if (!termo) { toast('Digite o nome da música primeiro.'); return; }
+  if (!alvo) return;
+
+  alvo.innerHTML = `<div class="busca-loading"><span class="busca-spinner"></span>Buscando automaticamente...</div>`;
+
+  try {
+    const resp = await fetch(`${CANTORAL_API_BUSCA_URL}?q=${encodeURIComponent(termo)}`);
+    const data = await resp.json();
+    if (!resp.ok || data.erro || data.error) {
+      throw new Error(data.erro || data.error || 'Erro ao buscar músicas.');
+    }
+
+    resultadosInternetCache = Array.isArray(data.resultados) ? data.resultados : [];
+    if (!resultadosInternetCache.length) {
+      alvo.innerHTML = `<div class="busca-loading" style="text-align:left">Nenhum resultado automático encontrado.</div>`;
+      return;
+    }
+
+    alvo.innerHTML = resultadosInternetCache.map((r, idx) => {
+      const momento = r.momentoSugerido || r.momento || 'Não informado';
+      const tempo = r.tempoLiturgicoSugerido || r.tempo || 'Tempo Comum';
+      const resumo = r.resumo ? `<div class="busca-item-meta" style="margin-top:4px">${escapeHtml(r.resumo)}</div>` : '';
+      return `
+        <div class="busca-item" style="align-items:flex-start">
+          <div style="font-size:20px">🎵</div>
+          <div style="flex:1">
+            <div class="busca-item-title">${escapeHtml(r.titulo || 'Sem título')}</div>
+            <div class="busca-item-meta">${escapeHtml(r.artista || 'Artista não informado')} · Tom: ${escapeHtml(r.tom || '?')} · ${escapeHtml(momento)} · ${escapeHtml(tempo)}</div>
+            ${resumo}
+          </div>
+          <div style="margin-left:auto">
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();importarResultadoInternet(${idx})">Importar</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    alvo.innerHTML = `<div class="busca-loading" style="text-align:left;color:#c0392b">Erro na busca automática: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function importarResultadoInternet(idx) {
+  const r = resultadosInternetCache[idx];
+  if (!r) return;
+
+  const titulo = (r.titulo || '').trim();
+  if (!titulo) { toast('Resultado sem título.'); return; }
+
+  const artista = (r.artista || '').trim();
+  const duplicada = state.repertorio.find(m =>
+    normalizarTexto(m.titulo) === normalizarTexto(titulo) &&
+    normalizarTexto(m.artista || '') === normalizarTexto(artista || '')
+  );
+
+  if (duplicada) {
+    toast('ℹ️ Essa música já está no repertório.');
+    prepararAddMusica(duplicada.id);
+    return;
+  }
+
+  const momentoId = resolverMomentoId(r.momentoSugerido || r.momento);
+  const tempoId = resolverTempoId(r.tempoLiturgicoSugerido || r.tempo);
+  const tags = Array.isArray(r.tags) ? r.tags.filter(Boolean) : [];
+
+  const fonte = [r.fonte, r.url].filter(Boolean).join('\n');
+  const resumo = r.resumo || '';
+  const cifraOuResumo = r.cifra || `[Importado pela busca automática]\n\n${resumo}${fonte ? `\n\nFonte:\n${fonte}` : ''}`;
+
+  const musica = {
+    id: uid(),
+    titulo,
+    artista,
+    tom: r.tom || 'C',
+    cifra: cifraOuResumo,
+    letra: r.letra || resumo,
+    favorita: false,
+    momentos: momentoId ? [momentoId] : [],
+    tempos: tempoId ? [tempoId] : [],
+    tags,
+    fonte: r.fonte || '',
+    url: r.url || ''
+  };
+
+  state.repertorio.push(musica);
+  saveState();
+  toast('✅ Música importada para o repertório!');
+
+  if (buscaMomentoCtx) {
+    prepararAddMusica(musica.id);
+    buscaMomentoCtx = null;
+  } else {
+    renderRepertorio();
+    switchRepTab('todas');
+  }
 }
 
 function selecionarMusicaBusca(jsonStr) {
