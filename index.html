@@ -827,6 +827,11 @@
         <div class="form-hint">Ex: Missa Dominical, Páscoa, Natal, Quaresma, Adoração...</div>
       </div>
       <div class="form-group">
+        <label class="form-label">Tempo Litúrgico</label>
+        <select class="form-select" id="nc-tempo"></select>
+        <div class="form-hint">Ex: Tempo Comum, Advento, Natal, Quaresma, Páscoa...</div>
+      </div>
+      <div class="form-group">
         <label class="form-label">Momentos Litúrgicos</label>
         <div class="form-hint" style="margin-bottom:12px">Ative ou desative os momentos para esta celebração</div>
         <div class="momentos-list" id="nc-momentos"></div>
@@ -986,6 +991,18 @@ const TIPOS_CELEBRACAO_PADRAO = [
   { id: 'outros', nome: 'Outros', icon: '📌' },
 ];
 
+
+const TEMPOS_LITURGICOS_PADRAO = [
+  { id: 'tempo-comum', nome: 'Tempo Comum', icon: '🌿' },
+  { id: 'advento', nome: 'Advento', icon: '🕯️' },
+  { id: 'natal', nome: 'Natal', icon: '🌟' },
+  { id: 'quaresma', nome: 'Quaresma', icon: '💜' },
+  { id: 'pascoa', nome: 'Páscoa', icon: '☀️' },
+  { id: 'mariano', nome: 'Mariano', icon: '💙' },
+  { id: 'santissimo', nome: 'Santíssimo / Eucarístico', icon: '✝️' },
+  { id: 'outros', nome: 'Outros', icon: '📌' },
+];
+
 const TONS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const TONS_PT = {'C':'Dó','C#':'Dó#','D':'Ré','D#':'Ré#','E':'Mi','F':'Fá','F#':'Fá#','G':'Sol','G#':'Sol#','A':'Lá','A#':'Lá#','B':'Si'};
 
@@ -995,6 +1012,7 @@ let state = {
   repertorio: [],
   catalogoAtivo: null,
   tiposCelebracao: [],
+  temposLiturgicos: [],
 };
 
 // Versão do app — alterar aqui força reset dos dados de seed
@@ -1011,10 +1029,13 @@ function loadState() {
     if (!state.catalogos) state.catalogos = [];
     if (!state.repertorio) state.repertorio = [];
     if (!state.tiposCelebracao) state.tiposCelebracao = [];
+    if (!state.temposLiturgicos) state.temposLiturgicos = [];
     normalizarTiposCelebracao();
+    normalizarTemposLiturgicos();
+    normalizarRepertorio();
     state.repertorio.forEach(m => { if (typeof m.favorita === 'undefined') m.favorita = false; });
   } catch(e) {
-    state = { catalogos: [], repertorio: [], catalogoAtivo: null, tiposCelebracao: [] };
+    state = { catalogos: [], repertorio: [], catalogoAtivo: null, tiposCelebracao: [], temposLiturgicos: [] };
   }
 }
 function saveState() {
@@ -1492,7 +1513,7 @@ Mãe de Deus, mãe do céu, mãe da fé e nossa mãe  (2x)`
 
   state.repertorio = musicas;
   state.tiposCelebracao = TIPOS_CELEBRACAO_PADRAO.map(t => ({ ...t }));
-  state.catalogos = [{ id: catId, nome: 'Missa 07/07', tipoId: 'missa-dominical', momentos }];
+  state.catalogos = [{ id: catId, nome: 'Missa 07/07', tipoId: 'missa-dominical', tempoId: 'tempo-comum', momentos }];
   state.catalogoAtivo = catId;
   saveState();
 }
@@ -1537,6 +1558,120 @@ function preencherSelectTiposCelebracao(selectId, selectedId) {
   const escolhido = selectedId || state.tiposCelebracao[0].id;
   select.innerHTML = getTipoOptions(escolhido);
 }
+
+function normalizarTemposLiturgicos() {
+  if (!Array.isArray(state.temposLiturgicos) || state.temposLiturgicos.length === 0) {
+    state.temposLiturgicos = TEMPOS_LITURGICOS_PADRAO.map(t => ({ ...t }));
+  }
+  state.temposLiturgicos = state.temposLiturgicos
+    .filter(t => t && t.id && t.nome)
+    .map(t => ({ id: String(t.id), nome: String(t.nome), icon: t.icon || '📌' }));
+  if (state.temposLiturgicos.length === 0) {
+    state.temposLiturgicos = [{ id: 'outros', nome: 'Outros', icon: '📌' }];
+  }
+  const defaultTempo = state.temposLiturgicos.find(t => t.id === 'tempo-comum')?.id || state.temposLiturgicos[0].id;
+  state.catalogos.forEach(cat => {
+    if (!cat.tempoId || !state.temposLiturgicos.some(t => t.id === cat.tempoId)) cat.tempoId = defaultTempo;
+  });
+}
+
+function getTempoLiturgico(tempoId) {
+  normalizarTemposLiturgicos();
+  return state.temposLiturgicos.find(t => t.id === tempoId) || state.temposLiturgicos[0];
+}
+
+function getTempoOptions(selectedId) {
+  normalizarTemposLiturgicos();
+  return state.temposLiturgicos.map(t => `<option value="${t.id}" ${t.id === selectedId ? 'selected' : ''}>${t.icon} ${escapeHtml(t.nome)}</option>`).join('');
+}
+
+function preencherSelectTemposLiturgicos(selectId, selectedId) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  normalizarTemposLiturgicos();
+  const escolhido = selectedId || state.temposLiturgicos[0].id;
+  select.innerHTML = getTempoOptions(escolhido);
+}
+
+function novoTempoLiturgico() {
+  const nome = prompt('Nome do novo tempo litúrgico:');
+  if (!nome || !nome.trim()) return;
+  const icon = prompt('Ícone para este tempo (opcional):', '📌') || '📌';
+  const id = 'tempo_' + uid();
+  state.temposLiturgicos.push({ id, nome: nome.trim(), icon: icon.trim() || '📌' });
+  saveState();
+  renderGerenciar();
+  renderCatalogoContent();
+  toast('✅ Tempo litúrgico criado!');
+}
+
+function renomearTempoLiturgico(id) {
+  const tempo = state.temposLiturgicos.find(t => t.id === id);
+  if (!tempo) return;
+  const novoNome = prompt('Novo nome do tempo litúrgico:', tempo.nome);
+  if (!novoNome || !novoNome.trim()) return;
+  const novoIcon = prompt('Ícone deste tempo:', tempo.icon || '📌') || tempo.icon || '📌';
+  tempo.nome = novoNome.trim();
+  tempo.icon = novoIcon.trim() || '📌';
+  saveState();
+  renderGerenciar();
+  renderCatalogoContent();
+  toast('✏️ Tempo litúrgico atualizado!');
+}
+
+function excluirTempoLiturgico(id) {
+  normalizarTemposLiturgicos();
+  if (state.temposLiturgicos.length <= 1) { toast('⚠️ Mantenha ao menos um tempo litúrgico'); return; }
+  const tempo = state.temposLiturgicos.find(t => t.id === id);
+  if (!tempo) return;
+  const vinculadas = state.catalogos.filter(c => c.tempoId === id).length;
+  const msg = vinculadas > 0
+    ? `Excluir o tempo "${tempo.nome}"? ${vinculadas} celebração${vinculadas!==1?'ões serão movidas para outro tempo.':' será movida para outro tempo.'}`
+    : `Excluir o tempo "${tempo.nome}"?`;
+  if (!confirm(msg)) return;
+  const fallback = state.temposLiturgicos.find(t => t.id !== id)?.id;
+  state.catalogos.forEach(cat => { if (cat.tempoId === id) cat.tempoId = fallback; });
+  state.temposLiturgicos = state.temposLiturgicos.filter(t => t.id !== id);
+  saveState();
+  renderGerenciar();
+  renderCatalogoContent();
+  toast('🗑 Tempo litúrgico excluído');
+}
+
+function alterarTempoCatalogo(catId, tempoId) {
+  const cat = state.catalogos.find(c => c.id === catId);
+  if (!cat) return;
+  cat.tempoId = tempoId;
+  saveState();
+  renderSidebar();
+  renderCatalogoContent();
+  renderGerenciar();
+  toast('☀️ Tempo litúrgico da celebração atualizado');
+}
+
+
+function normalizarRepertorio() {
+  if (!Array.isArray(state.repertorio)) state.repertorio = [];
+  state.repertorio.forEach(m => {
+    if (!Array.isArray(m.momentos)) m.momentos = [];
+    if (!Array.isArray(m.tempos)) m.tempos = [];
+    if (!Array.isArray(m.tags)) m.tags = [];
+    if (typeof m.favorita === 'undefined') m.favorita = false;
+  });
+}
+
+function getNomeMomento(momentId) {
+  return MOMENTOS_PADRAO.find(m => m.id === momentId)?.nome || momentId;
+}
+
+function getNomeTempo(tempoId) {
+  return state.temposLiturgicos?.find(t => t.id === tempoId)?.nome || TEMPOS_LITURGICOS_PADRAO.find(t => t.id === tempoId)?.nome || tempoId;
+}
+
+function getNomeTipo(tipoId) {
+  return state.tiposCelebracao?.find(t => t.id === tipoId)?.nome || TIPOS_CELEBRACAO_PADRAO.find(t => t.id === tipoId)?.nome || tipoId;
+}
+
 
 function novoTipoCelebracao() {
   const nome = prompt('Nome do novo tipo de celebração:');
@@ -1687,15 +1822,17 @@ function renderCatalogoContent() {
   const momentosAtivos = cat.momentos.filter(m => m.ativo);
   const totalMusicas = momentosAtivos.reduce((s,m) => s + (m.musicas||[]).length, 0);
   const tipo = getTipoCelebracao(cat.tipoId);
+  const tempo = getTempoLiturgico(cat.tempoId);
 
   container.innerHTML = `
     <div class="cat-header">
       <div>
         <div class="cat-header-title">${escapeHtml(cat.nome)}</div>
-        <div class="cat-header-sub"><span class="tipo-badge">${tipo.icon} ${escapeHtml(tipo.nome)}</span> &nbsp; ${momentosAtivos.length} momentos · ${totalMusicas} música${totalMusicas!==1?'s':''}</div>
+        <div class="cat-header-sub"><span class="tipo-badge">${tipo.icon} ${escapeHtml(tipo.nome)}</span> <span class="tipo-badge">${tempo.icon} ${escapeHtml(tempo.nome)}</span> &nbsp; ${momentosAtivos.length} momentos · ${totalMusicas} música${totalMusicas!==1?'s':''}</div>
       </div>
       <div class="cat-actions">
         <button class="btn btn-outline btn-sm" onclick="abrirModalMomentos()">⚙️ Momentos</button>
+        <button class="btn btn-gold btn-sm" onclick="gerarSugestoesCatalogo()">✨ Gerar Sugestões</button>
         <button class="btn btn-primary btn-sm" onclick="abrirBuscaRapida()">🎵 Adicionar Música</button>
       </div>
     </div>
@@ -1773,6 +1910,7 @@ function renderMusicaCard(catId, momentoId, musicaId) {
 function abrirModalNovoCatalogo() {
   document.getElementById('nc-nome').value = '';
   preencherSelectTiposCelebracao('nc-tipo');
+  preencherSelectTemposLiturgicos('nc-tempo');
   const list = document.getElementById('nc-momentos');
   list.innerHTML = '';
   MOMENTOS_PADRAO.forEach(m => {
@@ -1797,6 +1935,7 @@ function criarMomentoToggleItem(m, ativo) {
 function salvarCatalogo() {
   const nome = document.getElementById('nc-nome').value.trim();
   const tipoId = document.getElementById('nc-tipo')?.value || state.tiposCelebracao[0]?.id || 'outros';
+  const tempoId = document.getElementById('nc-tempo')?.value || state.temposLiturgicos?.[0]?.id || 'tempo-comum';
   if (!nome) { toast('⚠️ Digite um nome para a celebração'); return; }
   const items = document.querySelectorAll('#nc-momentos .momento-manage-item');
   const momentos = MOMENTOS_PADRAO.map(m => {
@@ -1805,7 +1944,7 @@ function salvarCatalogo() {
     return { ...m, ativo, musicas: [] };
   });
   const id = uid();
-  state.catalogos.push({ id, nome, tipoId, momentos });
+  state.catalogos.push({ id, nome, tipoId, tempoId, momentos });
   state.catalogoAtivo = id;
   saveState();
   fecharModal('modal-catalogo');
@@ -1866,12 +2005,14 @@ function renderGerenciar() {
         const totalMusicas = cat.momentos.filter(m=>m.ativo).reduce((s,m)=>s+(m.musicas||[]).length,0);
         const ativos = cat.momentos.filter(m=>m.ativo).length;
         const tipo = getTipoCelebracao(cat.tipoId);
+  const tempo = getTempoLiturgico(cat.tempoId);
         return `<div style="background:white;border-radius:14px;padding:18px 20px;box-shadow:var(--sombra);display:flex;align-items:center;gap:14px;border:1px solid var(--cinza-suave);flex-wrap:wrap">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--azul-palido),var(--azul-gelo));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${tipo.icon}</div>
           <div style="flex:1;min-width:190px">
             <div style="font-weight:700;font-size:14px;color:var(--texto-escuro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(cat.nome)}</div>
-            <div style="font-size:11.5px;color:var(--texto-claro);margin-top:2px">${tipo.icon} ${escapeHtml(tipo.nome)} · ${ativos} momentos · ${totalMusicas} música${totalMusicas!==1?'s':''}</div>
+            <div style="font-size:11.5px;color:var(--texto-claro);margin-top:2px">${tipo.icon} ${escapeHtml(tipo.nome)} · ${tempo.icon} ${escapeHtml(tempo.nome)} · ${ativos} momentos · ${totalMusicas} música${totalMusicas!==1?'s':''}</div>
             <select class="form-select" style="margin-top:8px;max-width:260px;padding:8px 10px;font-size:12px" onchange="alterarTipoCatalogo('${cat.id}', this.value)">${getTipoOptions(cat.tipoId)}</select>
+            <select class="form-select" style="margin-top:6px;max-width:260px;padding:8px 10px;font-size:12px" onchange="alterarTempoCatalogo('${cat.id}', this.value)">${getTempoOptions(cat.tempoId)}</select>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
             <button class="btn btn-outline btn-sm" onclick="state.catalogoAtivo='${cat.id}';saveState();mostrarMissa();renderSidebar();" title="Abrir">▶</button>
@@ -1914,6 +2055,31 @@ function renderGerenciar() {
             <div style="display:flex;gap:6px;flex-shrink:0">
               <button class="btn btn-outline btn-sm" onclick="renomearTipoCelebracao('${tipo.id}')" title="Alterar nome">✏️</button>
               <button class="btn btn-danger btn-sm" onclick="excluirTipoCelebracao('${tipo.id}')" title="Excluir">🗑</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:34px 0 16px;padding-bottom:12px;border-bottom:2px solid var(--azul-palido);gap:12px">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--azul-profundo)">Tempos Litúrgicos</div>
+          <div style="font-size:12px;color:var(--texto-claro);letter-spacing:1px;text-transform:uppercase;margin-top:2px">${state.temposLiturgicos.length} tempo${state.temposLiturgicos.length!==1?'s':''}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="novoTempoLiturgico()">+ Tempo</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${state.temposLiturgicos.map(tempo => {
+          const total = state.catalogos.filter(c => c.tempoId === tempo.id).length;
+          return `<div class="tipo-manage-card">
+            <div class="tipo-manage-icon">${tempo.icon}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:14px;color:var(--texto-escuro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(tempo.nome)}</div>
+              <div style="font-size:11.5px;color:var(--texto-claro);margin-top:2px">${total} celebração${total!==1?'ões':''}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <button class="btn btn-outline btn-sm" onclick="renomearTempoLiturgico('${tempo.id}')" title="Alterar nome">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="excluirTempoLiturgico('${tempo.id}')" title="Excluir">🗑</button>
             </div>
           </div>`;
         }).join('')}
@@ -2035,9 +2201,11 @@ function buscarMusica(query) {
   if (termo.length < 2) { container.innerHTML = ''; return; }
 
   buscaTimeout = setTimeout(() => {
+    const termos = normalizarTexto(termoOriginal).split(/\s+/).filter(Boolean);
     const resultados = state.repertorio.filter(m => {
-      const texto = `${m.titulo || ''} ${m.artista || ''}`.toLowerCase();
-      return texto.includes(termo);
+      const usos = getMomentosDaMusica(m.id).map(u => u.nome).join(' ');
+      const texto = normalizarTexto([m.titulo || '', m.artista || '', usos, (m.tags||[]).join(' '), (m.tempos||[]).map(getNomeTempo).join(' '), (m.tipos||[]).map(getNomeTipo).join(' '), m.letra || '', m.cifra || ''].join(' '));
+      return termos.every(t => texto.includes(t));
     });
 
     const resultadosHtml = resultados.length ? resultados.map(m => `
@@ -2215,6 +2383,11 @@ function montarFiltrosMomento() {
 
 function getMomentosDaMusica(musicaId) {
   const encontrados = [];
+  const musica = state.repertorio.find(r => r.id === musicaId);
+  (musica?.momentos || []).forEach(mid => {
+    const mp = MOMENTOS_PADRAO.find(m => m.id === mid);
+    if (mp && !encontrados.some(m => m.id === mp.id)) encontrados.push({ id: mp.id, nome: mp.nome });
+  });
   state.catalogos.forEach(cat => {
     (cat.momentos || []).forEach(mt => {
       if ((mt.musicas || []).includes(musicaId) && !encontrados.some(m => m.id === mt.id)) {
@@ -2255,7 +2428,7 @@ function renderListaMusicas(gridId, musicas, emptyTitle, emptySub) {
     const usos = usosObj.map(u => u.nome);
     const card = document.createElement('div');
     card.className = 'rep-card';
-    card.dataset.search = normalizarTexto([m.titulo, m.artista || '', m.tom || '', usos.join(' ')].join(' '));
+    card.dataset.search = normalizarTexto([m.titulo, m.artista || '', m.tom || '', usos.join(' '), (m.tags||[]).join(' '), (m.tempos||[]).map(getNomeTempo).join(' '), (m.tipos||[]).map(getNomeTipo).join(' '), m.letra || '', m.cifra || ''].join(' '));
     card.dataset.momentos = usosObj.map(u => u.id).join(',');
     card.innerHTML = `
       <div class="rep-card-top">
@@ -2315,7 +2488,8 @@ function filtrarCards(gridId, q, momentoId) {
   cards.forEach(card => {
     const search = card.dataset.search || normalizarTexto(card.textContent);
     const momentos = (card.dataset.momentos || '').split(',').filter(Boolean);
-    const matchTexto = !termo || search.includes(termo);
+    const termos = termo.split(/\s+/).filter(Boolean);
+    const matchTexto = termos.length === 0 || termos.every(t => search.includes(t));
     const matchMomento = !momentoId || momentos.includes(momentoId);
     card.style.display = (matchTexto && matchMomento) ? '' : 'none';
   });
@@ -2501,6 +2675,9 @@ function garantirMusicaTaoSublime() {
   const existente = state.repertorio.find(m => normalizarTexto(m.titulo) === normalizarTexto('Tão Sublime Sacramento'));
   if (existente) {
     if (existente.favorita === undefined) existente.favorita = false;
+    if (!Array.isArray(existente.momentos) || existente.momentos.length === 0) existente.momentos = ['adoracao','comunhao'];
+    if (!Array.isArray(existente.tempos) || existente.tempos.length === 0) existente.tempos = ['santissimo','tempo-comum'];
+    if (!Array.isArray(existente.tags) || existente.tags.length === 0) existente.tags = ['eucaristia','santissimo','adoracao','bencao'];
     return existente.id;
   }
   const novaMusica = {
@@ -2509,6 +2686,10 @@ function garantirMusicaTaoSublime() {
     artista: 'Tradicional / São Tomás de Aquino',
     tom: 'D',
     favorita: false,
+    momentos: ['adoracao','comunhao'],
+    tempos: ['santissimo','tempo-comum'],
+    tipos: ['adoracao','missa-dominical'],
+    tags: ['eucaristia','santissimo','adoracao','bencao'],
     cifra: `[Intro] D  A7  D
 
 D              A7       D
@@ -2587,11 +2768,1772 @@ function vincularTaoSublimeAoMomentoAdoracao(musicaId) {
   });
 }
 
+
+function garantirRepertorioBaseCatolico() {
+  const repertorioBase = [
+{
+    "id": "base_entrada_eis_me_aqui_senhor",
+    "titulo": "Eis-me Aqui, Senhor",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "entrada"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "advento",
+        "quaresma"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "tempo-comum"
+    ],
+    "tags": [
+        "entrada",
+        "vocacao",
+        "disponibilidade",
+        "servico"
+    ],
+    "cifra": "[Repertório base]\n\nEis-me Aqui, Senhor\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Eis-me Aqui, Senhor\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_entrada_a_barca",
+    "titulo": "A Barca",
+    "artista": "Padre Zezinho",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "entrada",
+        "adoracao",
+        "encerramento"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "tempo-comum"
+    ],
+    "tags": [
+        "seguimento",
+        "vocacao",
+        "missao",
+        "senhor"
+    ],
+    "cifra": "[Repertório base]\n\nA Barca\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "A Barca\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_entrada_povo_de_reis",
+    "titulo": "Povo de Reis",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "entrada"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "igreja",
+        "procissao",
+        "povo de deus"
+    ],
+    "cifra": "[Repertório base]\n\nPovo de Reis\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Povo de Reis\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_entrada_senhor_quem_entrara",
+    "titulo": "Senhor, Quem Entrará",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "entrada"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "entrada",
+        "templo",
+        "casa do senhor"
+    ],
+    "cifra": "[Repertório base]\n\nSenhor, Quem Entrará\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Senhor, Quem Entrará\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_entrada_reunidos_aqui",
+    "titulo": "Reunidos Aqui",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "entrada"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "assembleia",
+        "comunidade",
+        "entrada"
+    ],
+    "cifra": "[Repertório base]\n\nReunidos Aqui\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Reunidos Aqui\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_entrada_deus_esta_aqui",
+    "titulo": "Deus Está Aqui",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "entrada",
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "adoracao"
+    ],
+    "tags": [
+        "presenca",
+        "assembleia",
+        "adoracao"
+    ],
+    "cifra": "[Repertório base]\n\nDeus Está Aqui\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Deus Está Aqui\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_entrada_o_senhor_e_rei",
+    "titulo": "O Senhor é Rei",
+    "artista": "Tradicional",
+    "tom": "A",
+    "favorita": false,
+    "momentos": [
+        "entrada"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "louvor",
+        "realeza",
+        "entrada"
+    ],
+    "cifra": "[Repertório base]\n\nO Senhor é Rei\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "O Senhor é Rei\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_entrada_celebrai",
+    "titulo": "Celebrai",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "entrada"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "alegria",
+        "celebracao",
+        "louvor"
+    ],
+    "cifra": "[Repertório base]\n\nCelebrai\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Celebrai\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_entrada_igreja_peregrina",
+    "titulo": "Igreja Peregrina",
+    "artista": "Tradicional",
+    "tom": "C",
+    "favorita": false,
+    "momentos": [
+        "entrada",
+        "encerramento"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "igreja",
+        "caminhada",
+        "povo"
+    ],
+    "cifra": "[Repertório base]\n\nIgreja Peregrina\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Igreja Peregrina\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_entrada_somos_povo_de_deus",
+    "titulo": "Somos Povo de Deus",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "entrada"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "igreja",
+        "assembleia",
+        "povo"
+    ],
+    "cifra": "[Repertório base]\n\nSomos Povo de Deus\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Somos Povo de Deus\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_penitencial_senhor_tende_piedade",
+    "titulo": "Senhor, Tende Piedade",
+    "artista": "Litúrgica",
+    "tom": "Em",
+    "favorita": false,
+    "momentos": [
+        "ato-penitencial"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "quaresma"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "quaresma"
+    ],
+    "tags": [
+        "kyrie",
+        "piedade",
+        "misericordia"
+    ],
+    "cifra": "[Repertório base]\n\nSenhor, Tende Piedade\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Senhor, Tende Piedade\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_penitencial_kyrie_eleison",
+    "titulo": "Kyrie Eleison",
+    "artista": "Litúrgica",
+    "tom": "Dm",
+    "favorita": false,
+    "momentos": [
+        "ato-penitencial"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "quaresma"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "quaresma"
+    ],
+    "tags": [
+        "kyrie",
+        "piedade",
+        "gregoriano"
+    ],
+    "cifra": "[Repertório base]\n\nKyrie Eleison\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Kyrie Eleison\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_penitencial_misericordia_senhor",
+    "titulo": "Misericórdia, Senhor",
+    "artista": "Tradicional",
+    "tom": "Em",
+    "favorita": false,
+    "momentos": [
+        "ato-penitencial"
+    ],
+    "tempos": [
+        "quaresma",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "quaresma"
+    ],
+    "tags": [
+        "misericordia",
+        "perdao",
+        "penitencia"
+    ],
+    "cifra": "[Repertório base]\n\nMisericórdia, Senhor\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Misericórdia, Senhor\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_penitencial_perdoa_me_senhor",
+    "titulo": "Perdoa-me, Senhor",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "ato-penitencial"
+    ],
+    "tempos": [
+        "quaresma",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "perdao",
+        "arrependimento"
+    ],
+    "cifra": "[Repertório base]\n\nPerdoa-me, Senhor\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Perdoa-me, Senhor\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_penitencial_senhor_eu_pequei",
+    "titulo": "Senhor, Eu Pequei",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "ato-penitencial"
+    ],
+    "tempos": [
+        "quaresma",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "quaresma"
+    ],
+    "tags": [
+        "perdao",
+        "confissao",
+        "piedade"
+    ],
+    "cifra": "[Repertório base]\n\nSenhor, Eu Pequei\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Senhor, Eu Pequei\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_gloria_cnbb",
+    "titulo": "Glória a Deus nas Alturas",
+    "artista": "CNBB / Litúrgica",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "gloria"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "natal",
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "gloria",
+        "liturgico",
+        "louvor"
+    ],
+    "cifra": "[Repertório base]\n\nGlória a Deus nas Alturas\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Glória a Deus nas Alturas\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_gloria_shalom",
+    "titulo": "Glória (Shalom)",
+    "artista": "Comunidade Católica Shalom",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "gloria"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "gloria",
+        "louvor",
+        "festivo"
+    ],
+    "cifra": "[Repertório base]\n\nGlória (Shalom)\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Glória (Shalom)\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_gloria_frei_gilson",
+    "titulo": "Glória (Frei Gilson)",
+    "artista": "Frei Gilson",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "gloria"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "gloria",
+        "louvor"
+    ],
+    "cifra": "[Repertório base]\n\nGlória (Frei Gilson)\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Glória (Frei Gilson)\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_gloria_in_excelsis_deo",
+    "titulo": "Glória in Excelsis Deo",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "gloria"
+    ],
+    "tempos": [
+        "natal",
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "natal"
+    ],
+    "tags": [
+        "gloria",
+        "natal",
+        "solene"
+    ],
+    "cifra": "[Repertório base]\n\nGlória in Excelsis Deo\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Glória in Excelsis Deo\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_gloria_louvai",
+    "titulo": "Glória, Louvai",
+    "artista": "Tradicional",
+    "tom": "C",
+    "favorita": false,
+    "momentos": [
+        "gloria"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "gloria",
+        "louvor"
+    ],
+    "cifra": "[Repertório base]\n\nGlória, Louvai\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Glória, Louvai\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_aclamacao_aleluia_taize",
+    "titulo": "Aleluia de Taizé",
+    "artista": "Taizé",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "aclamacao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "aleluia",
+        "evangelho",
+        "taize"
+    ],
+    "cifra": "[Repertório base]\n\nAleluia de Taizé\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Aleluia de Taizé\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_aclamacao_aleluia_pascal",
+    "titulo": "Aleluia Pascal",
+    "artista": "Litúrgica",
+    "tom": "E",
+    "favorita": false,
+    "momentos": [
+        "aclamacao"
+    ],
+    "tempos": [
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "pascoa"
+    ],
+    "tags": [
+        "aleluia",
+        "pascoa",
+        "ressurreicao"
+    ],
+    "cifra": "[Repertório base]\n\nAleluia Pascal\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Aleluia Pascal\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_aclamacao_palavra_salvacao",
+    "titulo": "Palavra de Salvação",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "aclamacao"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "evangelho",
+        "palavra",
+        "aclamacao"
+    ],
+    "cifra": "[Repertório base]\n\nPalavra de Salvação\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Palavra de Salvação\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_aclamacao_aleluia_festivo",
+    "titulo": "Aleluia Festivo",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "aclamacao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa",
+        "natal"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "aleluia",
+        "festivo",
+        "evangelho"
+    ],
+    "cifra": "[Repertório base]\n\nAleluia Festivo\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Aleluia Festivo\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_aclamacao_louvor_e_gloria",
+    "titulo": "Louvor e Glória a Ti, Senhor",
+    "artista": "Litúrgica",
+    "tom": "Em",
+    "favorita": false,
+    "momentos": [
+        "aclamacao"
+    ],
+    "tempos": [
+        "quaresma"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "quaresma"
+    ],
+    "tags": [
+        "quaresma",
+        "evangelho",
+        "aclamacao"
+    ],
+    "cifra": "[Repertório base]\n\nLouvor e Glória a Ti, Senhor\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Louvor e Glória a Ti, Senhor\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_ofertorio_recebe_senhor",
+    "titulo": "Recebe, Senhor",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "ofertorio"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "oferta",
+        "pao",
+        "vinho"
+    ],
+    "cifra": "[Repertório base]\n\nRecebe, Senhor\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Recebe, Senhor\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_ofertorio_pao_e_vinho",
+    "titulo": "Pão e Vinho",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "ofertorio"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "oferta",
+        "pao",
+        "vinho",
+        "altar"
+    ],
+    "cifra": "[Repertório base]\n\nPão e Vinho\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Pão e Vinho\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_ofertorio_toma_senhor_nossa_vida",
+    "titulo": "Toma, Senhor, Nossa Vida",
+    "artista": "Tradicional",
+    "tom": "C",
+    "favorita": false,
+    "momentos": [
+        "ofertorio"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "quaresma"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "oferta",
+        "vida",
+        "entrega"
+    ],
+    "cifra": "[Repertório base]\n\nToma, Senhor, Nossa Vida\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Toma, Senhor, Nossa Vida\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_ofertorio_oferta_de_amor",
+    "titulo": "Oferta de Amor",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "ofertorio"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "ofertorio",
+        "amor",
+        "altar"
+    ],
+    "cifra": "[Repertório base]\n\nOferta de Amor\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Oferta de Amor\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_ofertorio_tudo_e_teu",
+    "titulo": "Tudo é Teu",
+    "artista": "Tradicional",
+    "tom": "E",
+    "favorita": false,
+    "momentos": [
+        "ofertorio"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "oferta",
+        "entrega",
+        "vida"
+    ],
+    "cifra": "[Repertório base]\n\nTudo é Teu\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Tudo é Teu\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_ofertorio_em_tuas_maos",
+    "titulo": "Em Tuas Mãos",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "ofertorio"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "quaresma"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "entrega",
+        "oferta",
+        "confianca"
+    ],
+    "cifra": "[Repertório base]\n\nEm Tuas Mãos\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Em Tuas Mãos\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_ofertorio_quero_oferecer",
+    "titulo": "Quero Oferecer",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "ofertorio"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "oferta",
+        "dons",
+        "vida"
+    ],
+    "cifra": "[Repertório base]\n\nQuero Oferecer\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Quero Oferecer\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_ofertorio_no_altar_de_deus",
+    "titulo": "No Altar de Deus",
+    "artista": "Tradicional",
+    "tom": "A",
+    "favorita": false,
+    "momentos": [
+        "ofertorio"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "altar",
+        "dons",
+        "oferta"
+    ],
+    "cifra": "[Repertório base]\n\nNo Altar de Deus\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "No Altar de Deus\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_ofertorio_eis_nossa_oferta",
+    "titulo": "Eis Nossa Oferta",
+    "artista": "Tradicional",
+    "tom": "C",
+    "favorita": false,
+    "momentos": [
+        "ofertorio"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "dons",
+        "pao",
+        "vinho"
+    ],
+    "cifra": "[Repertório base]\n\nEis Nossa Oferta\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Eis Nossa Oferta\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_ofertorio_recebe_a_minha_vida",
+    "titulo": "Recebe a Minha Vida",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "ofertorio"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "vida",
+        "oferta",
+        "entrega"
+    ],
+    "cifra": "[Repertório base]\n\nRecebe a Minha Vida\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Recebe a Minha Vida\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_santo_cnbb",
+    "titulo": "Santo (CNBB)",
+    "artista": "CNBB / Litúrgica",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "santo"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "natal",
+        "pascoa",
+        "quaresma"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "santo",
+        "liturgico",
+        "hosana"
+    ],
+    "cifra": "[Repertório base]\n\nSanto (CNBB)\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Santo (CNBB)\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_santo_shalom",
+    "titulo": "Santo (Shalom)",
+    "artista": "Comunidade Católica Shalom",
+    "tom": "E",
+    "favorita": false,
+    "momentos": [
+        "santo"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "santo",
+        "hosana"
+    ],
+    "cifra": "[Repertório base]\n\nSanto (Shalom)\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Santo (Shalom)\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_santo_popular",
+    "titulo": "Santo Popular",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "santo"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "santo",
+        "hosana"
+    ],
+    "cifra": "[Repertório base]\n\nSanto Popular\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Santo Popular\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_santo_taize",
+    "titulo": "Santo de Taizé",
+    "artista": "Taizé",
+    "tom": "Dm",
+    "favorita": false,
+    "momentos": [
+        "santo"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "quaresma"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "santo",
+        "taize",
+        "meditativo"
+    ],
+    "cifra": "[Repertório base]\n\nSanto de Taizé\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Santo de Taizé\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_santo_jovem",
+    "titulo": "Santo Jovem",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "santo"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "santo",
+        "jovem",
+        "festivo"
+    ],
+    "cifra": "[Repertório base]\n\nSanto Jovem\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Santo Jovem\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_comunhao_pao_da_vida",
+    "titulo": "Pão da Vida",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "comunhao",
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa",
+        "santissimo"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "adoracao"
+    ],
+    "tags": [
+        "eucaristia",
+        "pao",
+        "vida",
+        "comunhao"
+    ],
+    "cifra": "[Repertório base]\n\nPão da Vida\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Pão da Vida\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_comunhao_eu_sou_o_pao_vivo",
+    "titulo": "Eu Sou o Pão Vivo",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "comunhao",
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa",
+        "santissimo"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "eucaristia",
+        "pao da vida",
+        "comunhao"
+    ],
+    "cifra": "[Repertório base]\n\nEu Sou o Pão Vivo\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Eu Sou o Pão Vivo\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_comunhao_corpo_e_sangue",
+    "titulo": "Corpo e Sangue",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "comunhao",
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "santissimo"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "adoracao"
+    ],
+    "tags": [
+        "eucaristia",
+        "corpo",
+        "sangue"
+    ],
+    "cifra": "[Repertório base]\n\nCorpo e Sangue\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Corpo e Sangue\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_comunhao_alma_missionaria",
+    "titulo": "Alma Missionária",
+    "artista": "Ziza Fernandes",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "comunhao",
+        "encerramento"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "missao",
+        "discipulado",
+        "comunhao"
+    ],
+    "cifra": "[Repertório base]\n\nAlma Missionária\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Alma Missionária\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_comunhao_como_es_lindo",
+    "titulo": "Como És Lindo",
+    "artista": "Vida Reluz",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "comunhao",
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "santissimo"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "adoracao"
+    ],
+    "tags": [
+        "adoracao",
+        "eucaristia",
+        "jesus"
+    ],
+    "cifra": "[Repertório base]\n\nComo És Lindo\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Como És Lindo\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_comunhao_prova_de_amor",
+    "titulo": "Prova de Amor",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "comunhao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "quaresma"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "quaresma"
+    ],
+    "tags": [
+        "amor",
+        "cruz",
+        "eucaristia"
+    ],
+    "cifra": "[Repertório base]\n\nProva de Amor\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Prova de Amor\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_comunhao_amar_como_jesus_amou",
+    "titulo": "Amar Como Jesus Amou",
+    "artista": "Padre Zezinho",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "comunhao",
+        "encerramento"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "amor",
+        "servico",
+        "missao"
+    ],
+    "cifra": "[Repertório base]\n\nAmar Como Jesus Amou\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Amar Como Jesus Amou\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_comunhao_tua_familia",
+    "titulo": "Tua Família",
+    "artista": "Anjos de Resgate",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "comunhao"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "familia",
+        "comunhao",
+        "unidade"
+    ],
+    "cifra": "[Repertório base]\n\nTua Família\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Tua Família\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_comunhao_eu_navegarei",
+    "titulo": "Eu Navegarei",
+    "artista": "Tradicional",
+    "tom": "Em",
+    "favorita": false,
+    "momentos": [
+        "comunhao",
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "adoracao"
+    ],
+    "tags": [
+        "espirito santo",
+        "adoracao",
+        "entrega"
+    ],
+    "cifra": "[Repertório base]\n\nEu Navegarei\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Eu Navegarei\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_comunhao_fica_conosco",
+    "titulo": "Fica Conosco, Senhor",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "comunhao"
+    ],
+    "tempos": [
+        "pascoa",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-dominical",
+        "pascoa"
+    ],
+    "tags": [
+        "eucaristia",
+        "emaus",
+        "pascoa"
+    ],
+    "cifra": "[Repertório base]\n\nFica Conosco, Senhor\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Fica Conosco, Senhor\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_adoracao_nada_alem_do_sangue",
+    "titulo": "Nada Além do Sangue",
+    "artista": "Fernandinho",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "quaresma"
+    ],
+    "tipos": [
+        "adoracao"
+    ],
+    "tags": [
+        "adoracao",
+        "cruz",
+        "sangue",
+        "jesus"
+    ],
+    "cifra": "[Repertório base]\n\nNada Além do Sangue\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Nada Além do Sangue\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_adoracao_te_adorar",
+    "titulo": "Te Adorar",
+    "artista": "Comunidade Católica Shalom",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "santissimo"
+    ],
+    "tipos": [
+        "adoracao"
+    ],
+    "tags": [
+        "adoracao",
+        "louvor",
+        "jesus"
+    ],
+    "cifra": "[Repertório base]\n\nTe Adorar\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Te Adorar\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_adoracao_eu_vejo_o_rei",
+    "titulo": "Eu Vejo o Rei",
+    "artista": "Comunidade Católica Colo de Deus",
+    "tom": "E",
+    "favorita": false,
+    "momentos": [
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "santissimo"
+    ],
+    "tipos": [
+        "adoracao"
+    ],
+    "tags": [
+        "adoracao",
+        "rei",
+        "jesus"
+    ],
+    "cifra": "[Repertório base]\n\nEu Vejo o Rei\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Eu Vejo o Rei\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_adoracao_tu_es_o_centro",
+    "titulo": "Tu És o Centro",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "santissimo"
+    ],
+    "tipos": [
+        "adoracao"
+    ],
+    "tags": [
+        "adoracao",
+        "centro",
+        "jesus"
+    ],
+    "cifra": "[Repertório base]\n\nTu És o Centro\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Tu És o Centro\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_adoracao_jesus_eu_confio_em_vos",
+    "titulo": "Jesus, Eu Confio em Vós",
+    "artista": "Tradicional",
+    "tom": "C",
+    "favorita": false,
+    "momentos": [
+        "adoracao"
+    ],
+    "tempos": [
+        "quaresma",
+        "pascoa",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "adoracao"
+    ],
+    "tags": [
+        "misericordia",
+        "adoracao",
+        "confianca"
+    ],
+    "cifra": "[Repertório base]\n\nJesus, Eu Confio em Vós\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Jesus, Eu Confio em Vós\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_adoracao_adoremos",
+    "titulo": "Adoremos o Santíssimo Sacramento",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "adoracao"
+    ],
+    "tempos": [
+        "santissimo",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "adoracao"
+    ],
+    "tags": [
+        "santissimo",
+        "eucaristia",
+        "adoracao"
+    ],
+    "cifra": "[Repertório base]\n\nAdoremos o Santíssimo Sacramento\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Adoremos o Santíssimo Sacramento\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_adoracao_pao_dos_anjos",
+    "titulo": "Pão dos Anjos",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "adoracao",
+        "comunhao"
+    ],
+    "tempos": [
+        "santissimo",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "adoracao",
+        "missa-dominical"
+    ],
+    "tags": [
+        "eucaristia",
+        "adoracao",
+        "pao"
+    ],
+    "cifra": "[Repertório base]\n\nPão dos Anjos\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Pão dos Anjos\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_adoracao_em_tua_presenca",
+    "titulo": "Em Tua Presença",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "adoracao"
+    ],
+    "tags": [
+        "presenca",
+        "adoracao",
+        "oracao"
+    ],
+    "cifra": "[Repertório base]\n\nEm Tua Presença\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Em Tua Presença\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_adoracao_quero_mergulhar",
+    "titulo": "Quero Mergulhar",
+    "artista": "Comunidade Católica Colo de Deus",
+    "tom": "E",
+    "favorita": false,
+    "momentos": [
+        "adoracao"
+    ],
+    "tempos": [
+        "tempo-comum"
+    ],
+    "tipos": [
+        "adoracao"
+    ],
+    "tags": [
+        "adoracao",
+        "entrega",
+        "oracao"
+    ],
+    "cifra": "[Repertório base]\n\nQuero Mergulhar\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Quero Mergulhar\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_adoracao_vem_espirito_santo",
+    "titulo": "Vem, Espírito Santo",
+    "artista": "Tradicional",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "adoracao",
+        "comunhao"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa"
+    ],
+    "tipos": [
+        "adoracao",
+        "missa-dominical"
+    ],
+    "tags": [
+        "espirito santo",
+        "pentecostes",
+        "adoracao"
+    ],
+    "cifra": "[Repertório base]\n\nVem, Espírito Santo\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Vem, Espírito Santo\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_encerramento_maria_de_nazare",
+    "titulo": "Maria de Nazaré",
+    "artista": "Padre Zezinho",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "encerramento"
+    ],
+    "tempos": [
+        "mariano",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-mariana",
+        "missa-dominical"
+    ],
+    "tags": [
+        "maria",
+        "nossa senhora",
+        "mariano"
+    ],
+    "cifra": "[Repertório base]\n\nMaria de Nazaré\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Maria de Nazaré\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_encerramento_pelas_estradas_da_vida",
+    "titulo": "Pelas Estradas da Vida",
+    "artista": "Padre Zezinho",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "encerramento"
+    ],
+    "tempos": [
+        "mariano",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-mariana"
+    ],
+    "tags": [
+        "maria",
+        "caminhada",
+        "missao"
+    ],
+    "cifra": "[Repertório base]\n\nPelas Estradas da Vida\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Pelas Estradas da Vida\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_encerramento_ide_pelo_mundo",
+    "titulo": "Ide Pelo Mundo",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "encerramento"
+    ],
+    "tempos": [
+        "tempo-comum",
+        "pascoa"
+    ],
+    "tipos": [
+        "missa-dominical"
+    ],
+    "tags": [
+        "missao",
+        "envio",
+        "evangelizacao"
+    ],
+    "cifra": "[Repertório base]\n\nIde Pelo Mundo\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Ide Pelo Mundo\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_encerramento_rainha_do_ceu",
+    "titulo": "Rainha do Céu",
+    "artista": "Tradicional",
+    "tom": "C",
+    "favorita": false,
+    "momentos": [
+        "encerramento"
+    ],
+    "tempos": [
+        "pascoa",
+        "mariano"
+    ],
+    "tipos": [
+        "missa-mariana",
+        "pascoa"
+    ],
+    "tags": [
+        "maria",
+        "pascoa",
+        "rainha"
+    ],
+    "cifra": "[Repertório base]\n\nRainha do Céu\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Rainha do Céu\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_encerramento_nossa_senhora",
+    "titulo": "Nossa Senhora",
+    "artista": "Roberto Carlos / Erasmo Carlos",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "encerramento"
+    ],
+    "tempos": [
+        "mariano",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-mariana"
+    ],
+    "tags": [
+        "maria",
+        "nossa senhora",
+        "mae"
+    ],
+    "cifra": "[Repertório base]\n\nNossa Senhora\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Nossa Senhora\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_encerramento_magnificat",
+    "titulo": "Magnificat",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "encerramento",
+        "acao-gracas"
+    ],
+    "tempos": [
+        "mariano",
+        "advento"
+    ],
+    "tipos": [
+        "missa-mariana"
+    ],
+    "tags": [
+        "maria",
+        "louvor",
+        "acao de gracas"
+    ],
+    "cifra": "[Repertório base]\n\nMagnificat\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Magnificat\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_encerramento_a_escolhida",
+    "titulo": "A Escolhida",
+    "artista": "Vida Reluz",
+    "tom": "D",
+    "favorita": false,
+    "momentos": [
+        "encerramento"
+    ],
+    "tempos": [
+        "mariano",
+        "advento"
+    ],
+    "tipos": [
+        "missa-mariana"
+    ],
+    "tags": [
+        "maria",
+        "nossa senhora",
+        "mae"
+    ],
+    "cifra": "[Repertório base]\n\nA Escolhida\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "A Escolhida\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_encerramento_dai_nos_a_bencao",
+    "titulo": "Dai-nos a Bênção",
+    "artista": "Tradicional",
+    "tom": "G",
+    "favorita": false,
+    "momentos": [
+        "encerramento"
+    ],
+    "tempos": [
+        "mariano",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-mariana",
+        "missa-dominical"
+    ],
+    "tags": [
+        "maria",
+        "bencao",
+        "encerramento"
+    ],
+    "cifra": "[Repertório base]\n\nDai-nos a Bênção\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Dai-nos a Bênção\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_encerramento_com_maria_caminhamos",
+    "titulo": "Com Maria Caminhamos",
+    "artista": "Tradicional",
+    "tom": "C",
+    "favorita": false,
+    "momentos": [
+        "encerramento"
+    ],
+    "tempos": [
+        "mariano",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-mariana"
+    ],
+    "tags": [
+        "maria",
+        "caminhada",
+        "missao"
+    ],
+    "cifra": "[Repertório base]\n\nCom Maria Caminhamos\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Com Maria Caminhamos\n\nLetra ainda não cadastrada."
+},
+{
+    "id": "base_encerramento_salve_rainha",
+    "titulo": "Salve Rainha",
+    "artista": "Tradicional",
+    "tom": "C",
+    "favorita": false,
+    "momentos": [
+        "encerramento"
+    ],
+    "tempos": [
+        "mariano",
+        "tempo-comum"
+    ],
+    "tipos": [
+        "missa-mariana"
+    ],
+    "tags": [
+        "maria",
+        "salve rainha",
+        "oracao"
+    ],
+    "cifra": "[Repertório base]\n\nSalve Rainha\n\nLetra e cifra ainda não cadastradas. Use a busca na internet para localizar a versão que você utiliza e complete manualmente.",
+    "letra": "Salve Rainha\n\nLetra ainda não cadastrada."
+}
+  ];
+  repertorioBase.forEach(base => {
+    const existente = state.repertorio.find(m => m.id === base.id || normalizarTexto(m.titulo) === normalizarTexto(base.titulo));
+    if (existente) {
+      if (!Array.isArray(existente.momentos) || existente.momentos.length === 0) existente.momentos = base.momentos;
+      if (!Array.isArray(existente.tempos) || existente.tempos.length === 0) existente.tempos = base.tempos;
+      if (!Array.isArray(existente.tipos) || existente.tipos.length === 0) existente.tipos = base.tipos;
+      if (!Array.isArray(existente.tags) || existente.tags.length === 0) existente.tags = base.tags;
+      if (typeof existente.favorita === 'undefined') existente.favorita = false;
+    } else {
+      state.repertorio.push(base);
+    }
+  });
+}
+
+function pontuarMusicaParaSugestao(musica, momentoId, cat) {
+  let score = 0;
+  const texto = normalizarTexto([musica.titulo, musica.artista, (musica.tags||[]).join(' '), (musica.tempos||[]).map(getNomeTempo).join(' '), (musica.tipos||[]).map(getNomeTipo).join(' ')].join(' '));
+  if ((musica.momentos || []).includes(momentoId)) score += 100;
+  if ((musica.tempos || []).includes(cat.tempoId)) score += 25;
+  if ((musica.tipos || []).includes(cat.tipoId)) score += 15;
+  const momentoNome = normalizarTexto(getNomeMomento(momentoId));
+  if (momentoNome && texto.includes(momentoNome)) score += 10;
+  return score;
+}
+
+function gerarSugestoesCatalogo() {
+  const cat = state.catalogos.find(c => c.id === state.catalogoAtivo);
+  if (!cat) return;
+  const momentosAtivos = (cat.momentos || []).filter(m => m.ativo);
+  const jaTemMusicas = momentosAtivos.some(m => (m.musicas || []).length > 0);
+  const substituir = jaTemMusicas ? confirm('Alguns momentos já possuem músicas. Deseja substituir pelas sugestões automáticas?') : true;
+  if (!substituir) return;
+  const usadas = new Set();
+  let adicionadas = 0;
+  momentosAtivos.forEach(momento => {
+    const candidatos = state.repertorio
+      .filter(m => !usadas.has(m.id))
+      .map(m => ({ musica: m, score: pontuarMusicaParaSugestao(m, momento.id, cat) }))
+      .filter(x => x.score > 0)
+      .sort((a,b) => b.score - a.score || a.musica.titulo.localeCompare(b.musica.titulo));
+    if (substituir) momento.musicas = [];
+    if ((momento.musicas || []).length === 0 && candidatos.length) {
+      momento.musicas = [candidatos[0].musica.id];
+      usadas.add(candidatos[0].musica.id);
+      adicionadas++;
+    } else {
+      (momento.musicas || []).forEach(id => usadas.add(id));
+    }
+  });
+  saveState();
+  renderCatalogoContent();
+  renderRepertorio();
+  toast(`✨ Sugestões geradas para ${adicionadas} momento${adicionadas!==1?'s':''}`);
+}
+
 function aplicarMigracoes() {
   normalizarTiposCelebracao();
+  normalizarTemposLiturgicos();
+  normalizarRepertorio();
   garantirMomentoAdoracao();
   const musicaId = garantirMusicaTaoSublime();
   vincularTaoSublimeAoMomentoAdoracao(musicaId);
+  garantirRepertorioBaseCatolico();
+  normalizarRepertorio();
   saveState();
 }
 
