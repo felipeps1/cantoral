@@ -191,6 +191,14 @@
   .home-card-icon { font-size: 30px; margin-bottom: 12px; }
   .home-card-title { font-family: 'Cormorant Garamond', serif; font-size: 23px; font-weight: 600; color: var(--azul-profundo); margin-bottom: 6px; }
   .home-card-text { color: var(--texto-claro); font-size: 13px; line-height: 1.6; }
+  .app-version {
+    text-align: center;
+    margin: 22px 0 4px;
+    color: var(--texto-claro);
+    font-size: 11px;
+    letter-spacing: 0.7px;
+    font-weight: 700;
+  }
 
   /* ── VIEW: CATALOGO ── */
   #view-catalogo { padding: 32px; }
@@ -748,6 +756,7 @@
           <div class="home-card-text">Crie um novo catálogo para a próxima missa e escolha os momentos litúrgicos desejados.</div>
         </div>
       </div>
+      <div class="app-version">Cantoral v1.3.0 · Busca web guiada · Tipos reorganizados</div>
     </div>
 
     <!-- VIEW: CATALOGOS -->
@@ -822,12 +831,12 @@
         <input class="form-input" id="nc-nome" type="text" placeholder="Ex: Domingo 08/06, Missa das 10h...">
       </div>
       <div class="form-group">
-        <label class="form-label">Tipo de Celebração</label>
+        <label class="form-label">Tipo de Celebração (o que é)</label>
         <select class="form-select" id="nc-tipo"></select>
-        <div class="form-hint">Ex: Missa Dominical, Páscoa, Natal, Quaresma, Adoração...</div>
+        <div class="form-hint">Ex: Missa Dominical, Batismo, Casamento, Crisma, Adoração...</div>
       </div>
       <div class="form-group">
-        <label class="form-label">Tempo Litúrgico</label>
+        <label class="form-label">Tempo Litúrgico (quando acontece)</label>
         <select class="form-select" id="nc-tempo"></select>
         <div class="form-hint">Ex: Tempo Comum, Advento, Natal, Quaresma, Páscoa...</div>
       </div>
@@ -981,13 +990,14 @@ const MOMENTOS_PADRAO = [
 
 const TIPOS_CELEBRACAO_PADRAO = [
   { id: 'missa-dominical', nome: 'Missa Dominical', icon: '⛪' },
-  { id: 'tempo-comum', nome: 'Tempo Comum', icon: '🌿' },
-  { id: 'advento', nome: 'Advento', icon: '🕯️' },
-  { id: 'natal', nome: 'Natal', icon: '🌟' },
-  { id: 'quaresma', nome: 'Quaresma', icon: '💜' },
-  { id: 'pascoa', nome: 'Páscoa', icon: '☀️' },
+  { id: 'missa-ferial', nome: 'Missa Ferial / Semana', icon: '🕊️' },
+  { id: 'batismo', nome: 'Batismo', icon: '👶' },
+  { id: 'casamento', nome: 'Casamento', icon: '💍' },
+  { id: 'crisma', nome: 'Crisma', icon: '🔥' },
+  { id: 'exequias', nome: 'Exéquias', icon: '✝️' },
   { id: 'missa-mariana', nome: 'Missa Mariana', icon: '💙' },
-  { id: 'adoracao', nome: 'Adoração', icon: '✝️' },
+  { id: 'adoracao', nome: 'Adoração ao Santíssimo', icon: '☀️' },
+  { id: 'grupo-oracao', nome: 'Grupo de Oração', icon: '🙏' },
   { id: 'outros', nome: 'Outros', icon: '📌' },
 ];
 
@@ -1525,17 +1535,41 @@ function uid() { return Math.random().toString(36).slice(2,10); }
 // TIPOS DE CELEBRAÇÃO
 // ═══════════════════════════════════════════════════════
 
-function normalizarTiposCelebracao() {
-  if (!Array.isArray(state.tiposCelebracao) || state.tiposCelebracao.length === 0) {
-    state.tiposCelebracao = TIPOS_CELEBRACAO_PADRAO.map(t => ({ ...t }));
+
+function migrarTiposCelebracaoAntigos() {
+  const idsTempoQueEstavamEmTipo = ['tempo-comum','advento','natal','quaresma','pascoa'];
+  if (!Array.isArray(state.catalogos)) state.catalogos = [];
+  state.catalogos.forEach(cat => {
+    if (idsTempoQueEstavamEmTipo.includes(cat.tipoId)) {
+      if (!cat.tempoId || cat.tempoId === 'tempo-comum') cat.tempoId = cat.tipoId;
+      cat.tipoId = 'missa-dominical';
+    }
+  });
+  if (Array.isArray(state.tiposCelebracao)) {
+    state.tiposCelebracao = state.tiposCelebracao.filter(t => t && !idsTempoQueEstavamEmTipo.includes(t.id));
   }
+}
+
+function normalizarTiposCelebracao() {
+  migrarTiposCelebracaoAntigos();
+  if (!Array.isArray(state.tiposCelebracao)) state.tiposCelebracao = [];
   state.tiposCelebracao = state.tiposCelebracao
     .filter(t => t && t.id && t.nome)
     .map(t => ({ id: String(t.id), nome: String(t.nome), icon: t.icon || '📌' }));
+
+  TIPOS_CELEBRACAO_PADRAO.forEach(padrao => {
+    if (!state.tiposCelebracao.some(t => t.id === padrao.id)) {
+      state.tiposCelebracao.push({ ...padrao });
+    }
+  });
+
+  const ordem = new Map(TIPOS_CELEBRACAO_PADRAO.map((t, i) => [t.id, i]));
+  state.tiposCelebracao.sort((a,b) => (ordem.get(a.id) ?? 999) - (ordem.get(b.id) ?? 999) || a.nome.localeCompare(b.nome));
+
   if (state.tiposCelebracao.length === 0) {
     state.tiposCelebracao = [{ id: 'outros', nome: 'Outros', icon: '📌' }];
   }
-  const defaultTipo = state.tiposCelebracao[0].id;
+  const defaultTipo = state.tiposCelebracao.find(t => t.id === 'missa-dominical')?.id || state.tiposCelebracao[0].id;
   state.catalogos.forEach(cat => {
     if (!cat.tipoId || !state.tiposCelebracao.some(t => t.id === cat.tipoId)) cat.tipoId = defaultTipo;
   });
@@ -1991,6 +2025,7 @@ function switchCatTab(tab) {
 
 function renderGerenciar() {
   normalizarTiposCelebracao();
+  normalizarTemposLiturgicos();
   const container = document.getElementById('gerenciar-content');
   if (!container) return;
 
@@ -2038,7 +2073,7 @@ function renderGerenciar() {
       <div style="display:flex;align-items:center;justify-content:space-between;margin:34px 0 16px;padding-bottom:12px;border-bottom:2px solid var(--azul-palido);gap:12px">
         <div>
           <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--azul-profundo)">Tipos de Celebração</div>
-          <div style="font-size:12px;color:var(--texto-claro);letter-spacing:1px;text-transform:uppercase;margin-top:2px">${state.tiposCelebracao.length} tipo${state.tiposCelebracao.length!==1?'s':''}</div>
+          <div style="font-size:12px;color:var(--texto-claro);letter-spacing:1px;text-transform:uppercase;margin-top:2px">O que é: missa, batismo, casamento, adoração · ${state.tiposCelebracao.length} tipo${state.tiposCelebracao.length!==1?'s':''}</div>
         </div>
         <button class="btn btn-primary btn-sm" onclick="novoTipoCelebracao()">+ Tipo</button>
       </div>
@@ -2063,7 +2098,7 @@ function renderGerenciar() {
       <div style="display:flex;align-items:center;justify-content:space-between;margin:34px 0 16px;padding-bottom:12px;border-bottom:2px solid var(--azul-palido);gap:12px">
         <div>
           <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--azul-profundo)">Tempos Litúrgicos</div>
-          <div style="font-size:12px;color:var(--texto-claro);letter-spacing:1px;text-transform:uppercase;margin-top:2px">${state.temposLiturgicos.length} tempo${state.temposLiturgicos.length!==1?'s':''}</div>
+          <div style="font-size:12px;color:var(--texto-claro);letter-spacing:1px;text-transform:uppercase;margin-top:2px">Quando acontece: Tempo Comum, Advento, Natal, Quaresma, Páscoa · ${state.temposLiturgicos.length} tempo${state.temposLiturgicos.length!==1?'s':''}</div>
         </div>
         <button class="btn btn-primary btn-sm" onclick="novoTempoLiturgico()">+ Tempo</button>
       </div>
@@ -2180,11 +2215,24 @@ function escapeHtml(texto) {
 function abrirBuscaInternet(tipo) {
   const termo = (document.getElementById('busca-input').value || '').trim();
   if (!termo) { toast('Digite o nome da música primeiro.'); return; }
-  const q = encodeURIComponent(termo + ' cifra letra católica');
-  const url = tipo === 'cifraclub'
-    ? `https://www.google.com/search?q=site%3Acifraclub.com.br+${q}`
-    : `https://www.google.com/search?q=${q}`;
-  window.open(url, '_blank');
+  const qBase = `${termo} cifra letra católica`;
+  const q = encodeURIComponent(qBase);
+  const qCifraClub = encodeURIComponent(`site:cifraclub.com.br ${qBase}`);
+  const qLetras = encodeURIComponent(`site:letras.mus.br ${termo} católica letra`);
+  const qYoutube = encodeURIComponent(`${termo} música católica cifra`);
+  const urls = {
+    google: `https://www.google.com/search?q=${q}`,
+    cifraclub: `https://www.google.com/search?q=${qCifraClub}`,
+    letras: `https://www.google.com/search?q=${qLetras}`,
+    youtube: `https://www.youtube.com/results?search_query=${qYoutube}`
+  };
+  window.open(urls[tipo] || urls.google, '_blank');
+}
+
+function copiarTermoBuscaInternet() {
+  const termo = (document.getElementById('busca-input').value || '').trim();
+  if (!termo) { toast('Digite o nome da música primeiro.'); return; }
+  navigator.clipboard?.writeText(termo).then(() => toast('📋 Nome copiado!')).catch(() => toast('Não foi possível copiar automaticamente.'));
 }
 
 function abrirNovaManualComBusca() {
@@ -2231,6 +2279,9 @@ function buscarMusica(query) {
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
             <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirBuscaInternet('google')">Google</button>
             <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirBuscaInternet('cifraclub')">CifraClub</button>
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirBuscaInternet('letras')">Letras.mus.br</button>
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirBuscaInternet('youtube')">YouTube</button>
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();copiarTermoBuscaInternet()">Copiar nome</button>
             <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();abrirNovaManualComBusca()">Cadastrar manualmente</button>
           </div>
         </div>
