@@ -756,7 +756,7 @@
           <div class="home-card-text">Crie um novo catálogo para a próxima missa e escolha os momentos litúrgicos desejados.</div>
         </div>
       </div>
-      <div class="app-version">Cantoral v1.4.0 · Busca automática Vercel · Importação de músicas</div>
+      <div class="app-version">Cantoral v1.4.1 · Músicas incompletas removidas</div>
     </div>
 
     <!-- VIEW: CATALOGOS -->
@@ -1043,6 +1043,7 @@ function loadState() {
     normalizarTiposCelebracao();
     normalizarTemposLiturgicos();
     normalizarRepertorio();
+    removerMusicasIncompletasDoEstado();
     state.repertorio.forEach(m => { if (typeof m.favorita === 'undefined') m.favorita = false; });
   } catch(e) {
     state = { catalogos: [], repertorio: [], catalogoAtivo: null, tiposCelebracao: [], temposLiturgicos: [] };
@@ -1525,6 +1526,7 @@ Mãe de Deus, mãe do céu, mãe da fé e nossa mãe  (2x)`
   state.tiposCelebracao = TIPOS_CELEBRACAO_PADRAO.map(t => ({ ...t }));
   state.catalogos = [{ id: catId, nome: 'Missa 07/07', tipoId: 'missa-dominical', tempoId: 'tempo-comum', momentos }];
   state.catalogoAtivo = catId;
+  removerMusicasIncompletasDoEstado();
   saveState();
 }
 
@@ -1683,6 +1685,39 @@ function alterarTempoCatalogo(catId, tempoId) {
   toast('☀️ Tempo litúrgico da celebração atualizado');
 }
 
+
+
+function isMusicaIncompleta(m) {
+  const conteudo = `${m?.cifra || ''}\n${m?.letra || ''}`.toLowerCase();
+  if (!m || !m.titulo) return true;
+  if (!conteudo.trim()) return true;
+  return conteudo.includes('letra e cifra ainda não cadastradas') ||
+         conteudo.includes('use a busca na internet para localizar') ||
+         conteudo.includes('[repertório base]') ||
+         conteudo.includes('[repertorio base]');
+}
+
+function removerMusicasIncompletasDoEstado() {
+  if (!Array.isArray(state.repertorio)) state.repertorio = [];
+  const idsRemovidos = new Set(state.repertorio.filter(isMusicaIncompleta).map(m => m.id));
+  if (idsRemovidos.size === 0) return 0;
+
+  state.repertorio = state.repertorio.filter(m => !idsRemovidos.has(m.id));
+
+  if (Array.isArray(state.catalogos)) {
+    state.catalogos.forEach(cat => {
+      if (Array.isArray(cat.momentos)) {
+        cat.momentos.forEach(mom => {
+          if (Array.isArray(mom.musicas)) {
+            mom.musicas = mom.musicas.filter(id => !idsRemovidos.has(id));
+          }
+        });
+      }
+    });
+  }
+
+  return idsRemovidos.size;
+}
 
 function normalizarRepertorio() {
   if (!Array.isArray(state.repertorio)) state.repertorio = [];
