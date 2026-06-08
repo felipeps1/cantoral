@@ -4692,6 +4692,8 @@ function garantirRepertorioBaseCatolico() {
 }
   ];
   repertorioBase.forEach(base => {
+    // Não adiciona músicas do repertório base que ainda estejam sem letra/cifra cadastradas.
+    if (isMusicaIncompleta(base)) return;
     const existente = state.repertorio.find(m => m.id === base.id || normalizarTexto(m.titulo) === normalizarTexto(base.titulo));
     if (existente) {
       if (!Array.isArray(existente.momentos) || existente.momentos.length === 0) existente.momentos = base.momentos;
@@ -4755,6 +4757,7 @@ function aplicarMigracoes() {
   vincularTaoSublimeAoMomentoAdoracao(musicaId);
   garantirRepertorioBaseCatolico();
   normalizarRepertorio();
+  removerMusicasIncompletasDoEstado();
   saveState();
 }
 
