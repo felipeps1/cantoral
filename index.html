@@ -1079,7 +1079,7 @@
           <div class="home-card-text">Crie um novo catálogo para a próxima missa e escolha os momentos litúrgicos desejados.</div>
         </div>
       </div>
-      <div class="app-version">Cantoral v1.6.2 · Painel lateral corrigido</div>
+      <div class="app-version">Cantoral v1.7.1 · Sem celebrações · Favoritas restauradas</div>
     </div>
 
     <!-- VIEW: CATALOGOS -->
@@ -1377,27 +1377,81 @@ const APP_VERSION = 'v2';
 // Load / Save
 function loadState() {
   try {
-    const version = localStorage.getItem('cantoral_version');
     const s = localStorage.getItem('cantoral_state');
-    if (s && version === APP_VERSION) {
+    // A partir desta versão, carregamos o estado existente mesmo quando a versão muda.
+    // Isso evita perder favoritas e repertório ao atualizar o HTML.
+    if (s) {
       state = JSON.parse(s);
     }
     if (!state.catalogos) state.catalogos = [];
     if (!state.repertorio) state.repertorio = [];
     if (!state.tiposCelebracao) state.tiposCelebracao = [];
     if (!state.temposLiturgicos) state.temposLiturgicos = [];
+    if (!Array.isArray(state.favoritosOrdem)) state.favoritosOrdem = [];
     normalizarTiposCelebracao();
     normalizarTemposLiturgicos();
     normalizarRepertorio();
     removerMusicasIncompletasDoEstado();
     state.repertorio.forEach(m => { if (typeof m.favorita === 'undefined') m.favorita = false; });
+    restaurarFavoritasConhecidasSeVazio();
+    backupFavoritasCantoral();
   } catch(e) {
-    state = { catalogos: [], repertorio: [], catalogoAtivo: null, tiposCelebracao: [], temposLiturgicos: [] };
+    state = { catalogos: [], repertorio: [], catalogoAtivo: null, tiposCelebracao: [], temposLiturgicos: [], favoritosOrdem: [] };
   }
 }
 function saveState() {
   localStorage.setItem('cantoral_version', APP_VERSION);
   localStorage.setItem('cantoral_state', JSON.stringify(state));
+  backupFavoritasCantoral();
+}
+
+function tituloNormalizadoFavorito(t) {
+  return normalizarTexto(String(t || '')).replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function backupFavoritasCantoral() {
+  try {
+    const favs = (state.repertorio || []).filter(m => m.favorita).map(m => ({ id: m.id, titulo: m.titulo, artista: m.artista || '', tom: m.tom || '' }));
+    localStorage.setItem('cantoral_favoritas_backup', JSON.stringify(favs));
+  } catch(e) {}
+}
+
+function restaurarFavoritasConhecidasSeVazio() {
+  try {
+    const favsAtuais = (state.repertorio || []).filter(m => m.favorita);
+    if (favsAtuais.length > 0) return;
+
+    let titulosBackup = [];
+    try {
+      const backup = JSON.parse(localStorage.getItem('cantoral_favoritas_backup') || '[]');
+      titulosBackup = backup.map(x => x.titulo).filter(Boolean);
+    } catch(e) {}
+
+    // Recupera as favoritas que já apareceram nas versões anteriores e nos prints de validação.
+    const titulosPadrao = [
+      'Eu Seguirei',
+      'Contrito',
+      'Glória ao Pai, o Criador',
+      'Salmo 144',
+      'Fala Senhor',
+      'Pão e Vinho',
+      'Santo',
+      'Milagre de Amor',
+      'Minha essência',
+      'Minha Essência',
+      'Derrama o Teu Amor Aqui'
+    ];
+
+    const alvos = new Set([...titulosBackup, ...titulosPadrao].map(tituloNormalizadoFavorito));
+    const ordem = [];
+    (state.repertorio || []).forEach(m => {
+      if (alvos.has(tituloNormalizadoFavorito(m.titulo))) {
+        m.favorita = true;
+        ordem.push(m.id);
+      }
+    });
+    if (ordem.length) state.favoritosOrdem = ordem;
+  } catch(e) {}
 }
 
 // Seed demo data
