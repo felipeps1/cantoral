@@ -1028,9 +1028,8 @@
     </div>
   </div>
   <nav class="header-nav">
-    <button class="nav-btn active" onclick="showPage('home')">🏠 Home</button>
-    <button class="nav-btn" onclick="showPage('catalogos')">📋 Celebrações</button>
-    <button class="nav-btn" onclick="showPage('repertorio')">🎶 Repertório</button>
+    <button class="nav-btn active" onclick="simpleStart()">🏠 Home</button>
+    <button class="nav-btn" onclick="simpleStart()">🎶 Repertório</button>
   </nav>
 </header>
 
@@ -1079,7 +1078,7 @@
           <div class="home-card-text">Crie um novo catálogo para a próxima missa e escolha os momentos litúrgicos desejados.</div>
         </div>
       </div>
-      <div class="app-version">Cantoral v1.7.1 · Sem celebrações · Favoritas restauradas</div>
+      <div class="app-version">Cantoral v1.7.2 · Sem celebrações · Favoritas restauradas</div>
     </div>
 
     <!-- VIEW: CATALOGOS -->
@@ -5498,7 +5497,7 @@ function renderSidebarMusicas() {
   panel.innerHTML = `
     <div class="sidebar-musicas-head">
       <div class="sidebar-musicas-title">🎵 Músicas</div>
-      <button class="btn btn-outline btn-sm" onclick="showPage('repertorio');switchRepTab('adicionar')">+</button>
+      <button class="btn btn-outline btn-sm" onclick="simpleAbrirAdicionarMusica()">+</button>
     </div>
     <div class="sidebar-musicas-sub">Favoritas no topo, separadas das demais. Arraste as favoritas para ordenar.</div>
     <input class="sidebar-musicas-search" type="text" value="${escapeHtml(painelMusicasBusca)}" placeholder="Buscar música..." oninput="painelMusicasBusca=this.value;renderSidebarMusicas()">
@@ -5555,7 +5554,7 @@ function renderCatalogoContent() {
       <div class="cat-actions">
         <button class="btn btn-outline btn-sm" onclick="togglePainelMusicas()">☰ Painel</button>
         <button class="btn btn-gold btn-sm" onclick="gerarSugestoesCatalogo()">✨ Gerar Sugestões</button>
-        <button class="btn btn-primary btn-sm" onclick="showPage('repertorio');switchRepTab('adicionar')">🎵 Adicionar Música</button>
+        <button class="btn btn-primary btn-sm" onclick="simpleAbrirAdicionarMusica()">🎵 Adicionar Música</button>
       </div>
     </div>
     ${selecionada ? renderLeitorMusicaDireita(selecionada) : renderLeitorVazio()}`;
@@ -5801,6 +5800,18 @@ function simpleRow(m, selectedId, isFav){
     <div class="simple-row-info"><div class="simple-row-title">${escapeHtml(m.titulo||'')}</div><div class="simple-row-meta">${escapeHtml(m.artista||'—')} ${m.tom?'· '+escapeHtml(TONS_PT[m.tom]||m.tom):''}</div></div>
   </div>`;
 }
+
+function simpleAbrirAdicionarMusica(){
+  // Abre somente a aba antiga de adicionar música, mantendo o restante do app sem celebrações.
+  document.body.classList.remove('cantoral-simple-mode');
+  const sidebar=document.getElementById('sidebar'); if (sidebar) sidebar.style.display='none';
+  const home=document.getElementById('view-home'); if (home) home.style.display='none';
+  const cat=document.getElementById('view-catalogo'); if (cat) cat.style.display='none';
+  const rep=document.getElementById('view-repertorio'); if (rep) rep.style.display='block';
+  if (typeof renderRepertorio === 'function') renderRepertorio();
+  if (typeof switchRepTab === 'function') switchRepTab('adicionar');
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active', i===1));
+}
 function simpleRenderSidebar(){
   const sidebar = document.getElementById('sidebar');
   if (!sidebar) return;
@@ -5810,7 +5821,7 @@ function simpleRenderSidebar(){
   const favs = simpleGetFavs(lista);
   const outras = simpleGetOutras(lista);
   const sel = simpleGetSelected();
-  content.innerHTML = `<div class="simple-sidebar-header"><div class="simple-sidebar-title">🎵 Músicas <button class="btn btn-outline btn-sm" onclick="showPage('repertorio');switchRepTab('adicionar')">+</button></div><div class="simple-sidebar-hint">Favoritas no topo. Arraste as favoritas para ordenar. Clique em uma música para abrir.</div></div>
+  content.innerHTML = `<div class="simple-sidebar-header"><div class="simple-sidebar-title">🎵 Músicas <button class="btn btn-outline btn-sm" onclick="simpleAbrirAdicionarMusica()">+</button></div><div class="simple-sidebar-hint">Favoritas no topo. Arraste as favoritas para ordenar. Clique em uma música para abrir.</div></div>
     <input class="simple-search" value="${escapeHtml(simpleBusca)}" placeholder="Buscar música..." oninput="simpleBusca=this.value;simpleRenderSidebar()">
     <div class="simple-sidebar-list">
       <div class="simple-section-title">⭐ Favoritas</div>
@@ -5831,10 +5842,10 @@ function simpleRenderMain(){
       <div><div class="simple-title">Cantoral</div><div class="simple-sub">${state.repertorio.length} músicas · ${state.repertorio.filter(x=>x.favorita).length} favoritas</div></div>
       <div class="simple-actions">
         <button class="btn btn-outline btn-sm simple-mobile-panel-btn" onclick="simpleOpenMobilePanel()">☰ Músicas</button>
-        <button class="btn btn-primary btn-sm" onclick="showPage('repertorio');switchRepTab('adicionar')">🎵 Adicionar Música</button>
+        <button class="btn btn-primary btn-sm" onclick="simpleAbrirAdicionarMusica()">🎵 Adicionar Música</button>
       </div>
     </div>
-    ${m ? simpleReader(m) : `<div class="simple-empty"><div class="simple-empty-title">Nenhuma música no repertório</div><div>Adicione uma música para começar.</div><br><button class="btn btn-primary" onclick="showPage('repertorio');switchRepTab('adicionar')">Adicionar Música</button></div>`}
+    ${m ? simpleReader(m) : `<div class="simple-empty"><div class="simple-empty-title">Nenhuma música no repertório</div><div>Adicione uma música para começar.</div><br><button class="btn btn-primary" onclick="simpleAbrirAdicionarMusica()">Adicionar Música</button></div>`}
   </div>`;
 }
 function simpleReader(m){
@@ -5856,20 +5867,11 @@ function simpleTogglePanel(){
 }
 function simpleOpenMobilePanel(){ document.getElementById('sidebar')?.classList.add('mobile-open'); document.body.classList.add('simple-mobile-dim'); }
 function simpleCloseMobilePanel(){ document.getElementById('sidebar')?.classList.remove('mobile-open'); document.body.classList.remove('simple-mobile-dim'); }
-function simpleRender(){ simpleRenderSidebar(); simpleRenderMain(); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.querySelector('.nav-btn[onclick*="repertorio"]')?.classList.add('active'); }
+function simpleRender(){ simpleRenderSidebar(); simpleRenderMain(); document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active', i===0)); }
 
 const originalShowPageForAddMusic = window.showPage;
 window.showPage = function(page){
-  if (page === 'repertorio') {
-    document.body.classList.remove('cantoral-simple-mode');
-    document.getElementById('sidebar').style.display='none';
-    document.getElementById('view-home').style.display='none';
-    document.getElementById('view-catalogo').style.display='none';
-    document.getElementById('view-repertorio').style.display='block';
-    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',(b.getAttribute('onclick')||'').includes('repertorio')));
-    if (typeof renderRepertorio === 'function') renderRepertorio();
-    return;
-  }
+  // Versão sem celebrações: qualquer navegação principal volta para o repertório simples.
   simpleStart();
 };
 
