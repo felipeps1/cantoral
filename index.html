@@ -983,6 +983,37 @@
     .leitor-musica-title { font-size: 25px; }
   }
 
+
+
+  /* V1.6.4: painel lateral fixo enquanto a música rola */
+  @media (min-width: 769px) {
+    .app { align-items: flex-start; }
+    .sidebar {
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      max-height: calc(100vh - 60px);
+      overflow: hidden;
+      align-self: flex-start;
+    }
+    .sidebar-musicas-panel {
+      height: calc(100vh - 94px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sidebar-musicas-lista {
+      flex: 1;
+      max-height: none !important;
+      overflow-y: auto;
+      padding-bottom: 20px;
+    }
+    .app.music-panel-collapsed .sidebar {
+      height: calc(100vh - 60px);
+      max-height: calc(100vh - 60px);
+    }
+  }
+
 </style>
 </head>
 <body>
