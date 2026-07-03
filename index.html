@@ -5588,5 +5588,254 @@ montarFiltrosMomento();
 showPage('home');
 // Indicar visualmente se a chave está configurada
 </script>
+
+
+<style id="cantoral-v170-css">
+/* V1.7.0 — modo repertório único sem celebrações */
+#cantoral-simple-root { padding: 32px 36px; }
+.simple-reader-wrap { max-width: 1180px; margin: 0 auto; }
+.simple-topbar { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px; padding-bottom:18px; border-bottom:2px solid var(--azul-palido); }
+.simple-title { font-family:'Cormorant Garamond',serif; font-size:36px; color:var(--azul-profundo); font-weight:600; }
+.simple-sub { color:var(--texto-claro); font-size:13px; letter-spacing:.5px; margin-top:4px; }
+.simple-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+.simple-mobile-panel-btn { display:none; }
+.simple-reader-card { background:white; border-radius:18px; box-shadow:var(--sombra); overflow:hidden; border:1px solid var(--azul-palido); }
+.simple-reader-header { padding:24px 28px; background:linear-gradient(135deg,var(--azul-gelo),var(--azul-branco)); border-bottom:1px solid var(--azul-palido); display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
+.simple-song-title { font-family:'Cormorant Garamond',serif; font-size:34px; color:var(--azul-profundo); font-weight:600; line-height:1.1; }
+.simple-song-meta { color:var(--texto-claro); margin-top:6px; font-size:13.5px; }
+.simple-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:16px; }
+.simple-label { font-size:12px; font-weight:900; letter-spacing:1px; color:var(--texto-medio); text-transform:uppercase; }
+.simple-tone { background:var(--azul-medio); color:white; padding:7px 18px; border-radius:20px; font-size:14px; font-weight:900; min-width:56px; text-align:center; }
+.simple-content { padding:28px; min-height:520px; white-space:pre-wrap; line-height:2.15; color:var(--texto-escuro); background:var(--azul-branco); font-family:'Nunito',sans-serif; }
+.simple-empty { background:white; border-radius:18px; box-shadow:var(--sombra); padding:80px 30px; text-align:center; color:var(--texto-claro); }
+.simple-empty-title { font-family:'Cormorant Garamond',serif; font-size:30px; color:var(--azul-profundo); margin-bottom:8px; }
+.simple-sidebar-header { margin-bottom:18px; }
+.simple-sidebar-title { font-family:'Cormorant Garamond',serif; color:var(--azul-profundo); font-size:24px; font-weight:600; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.simple-sidebar-hint { color:var(--texto-claro); font-size:12px; line-height:1.45; margin-top:8px; }
+.simple-search { width:100%; padding:12px 14px; border:2px solid var(--azul-palido); border-radius:14px; outline:none; font-family:'Nunito',sans-serif; color:var(--texto-escuro); margin:12px 0 16px; background:white; }
+.simple-search:focus { border-color:var(--azul-claro); box-shadow:0 0 0 4px rgba(91,155,213,.12); }
+.simple-section-title { font-size:12px; font-weight:900; letter-spacing:1.8px; color:var(--texto-claro); text-transform:uppercase; margin:14px 0 8px; display:flex; align-items:center; gap:6px; }
+.simple-music-row { display:flex; align-items:center; gap:9px; padding:10px 10px; border:1px solid var(--cinza-suave); background:var(--azul-branco); border-radius:12px; margin-bottom:8px; cursor:pointer; transition:.15s all; }
+.simple-music-row:hover { border-color:var(--azul-claro); background:var(--azul-gelo); }
+.simple-music-row.active { border-color:var(--azul-medio); background:#ddecfb; box-shadow:inset 3px 0 0 var(--azul-medio); }
+.simple-drag { width:16px; color:var(--azul-medio); font-weight:900; cursor:grab; text-align:center; flex-shrink:0; }
+.simple-fav { width:32px; height:32px; border-radius:50%; border:2px solid var(--azul-palido); background:white; color:var(--texto-claro); cursor:pointer; flex-shrink:0; font-weight:900; display:flex; align-items:center; justify-content:center; }
+.simple-fav.active { border-color:var(--dourado); color:var(--dourado); background:#fff7d1; }
+.simple-row-info { min-width:0; flex:1; }
+.simple-row-title { font-size:13.5px; color:var(--texto-escuro); font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.simple-row-meta { font-size:11.5px; color:var(--texto-claro); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+.simple-sidebar-list { overflow-y:auto; max-height:calc(100vh - 250px); padding-right:4px; }
+body.cantoral-simple-mode #sidebar { display:block !important; position:sticky; top:60px; height:calc(100vh - 60px); overflow:hidden; padding:22px 14px; }
+body.cantoral-simple-mode .main { overflow:visible; }
+body.cantoral-simple-mode .app.music-panel-collapsed #sidebar { width:72px; min-width:72px; padding:16px 10px; }
+body.cantoral-simple-mode .app.music-panel-collapsed #cantoral-simple-sidebar-content { display:none; }
+body.cantoral-simple-mode .app.music-panel-collapsed .sidebar-collapse-btn { width:52px; height:52px; padding:0; font-size:0; border-radius:14px; }
+body.cantoral-simple-mode .app.music-panel-collapsed .sidebar-collapse-btn::after { content:'🎵'; font-size:22px; }
+body.cantoral-simple-mode #catalogos-list,
+body.cantoral-simple-mode .sidebar-title,
+body.cantoral-simple-mode .add-catalogo-btn,
+body.cantoral-simple-mode #cat-tabs,
+body.cantoral-simple-mode #fab-nova-celebracao { display:none !important; }
+body.cantoral-simple-mode .nav-btn[onclick*="catalogos"] { display:none !important; }
+body.cantoral-simple-mode .home-card, body.cantoral-simple-mode .home-hero { cursor:default; }
+@media (max-width:768px){
+  body.cantoral-simple-mode .app { display:block; min-height:calc(100vh - 60px); }
+  body.cantoral-simple-mode #sidebar { position:fixed !important; top:60px; left:0; width:min(88vw,360px) !important; min-width:0 !important; height:calc(100vh - 60px); transform:translateX(-105%); transition:transform .22s ease; z-index:150; box-shadow:8px 0 28px rgba(26,58,92,.22); padding:18px 14px; }
+  body.cantoral-simple-mode #sidebar.mobile-open { transform:translateX(0); }
+  body.cantoral-simple-mode .app.music-panel-collapsed #sidebar { transform:translateX(-105%); width:min(88vw,360px) !important; padding:18px 14px; }
+  body.cantoral-simple-mode .app.music-panel-collapsed #cantoral-simple-sidebar-content { display:block; }
+  body.cantoral-simple-mode .sidebar-collapse-btn { display:none !important; }
+  .simple-mobile-panel-btn { display:inline-flex; }
+  #cantoral-simple-root { padding:18px 16px 90px; }
+  .simple-topbar { flex-direction:column; align-items:stretch; }
+  .simple-title { font-size:30px; }
+  .simple-actions { justify-content:flex-start; }
+  .simple-reader-header { flex-direction:column; padding:22px 20px; }
+  .simple-song-title { font-size:30px; }
+  .simple-content { padding:22px 20px; min-height:430px; line-height:2.05; overflow-x:auto; }
+  .simple-sidebar-list { max-height:calc(100vh - 235px); }
+  body.simple-mobile-dim::before { content:''; position:fixed; inset:60px 0 0; background:rgba(10,30,60,.35); z-index:140; }
+}
+</style>
+
+<script id="cantoral-v170-script">
+// V1.7.0 — Cantoral simplificado: sem celebrações, foco em favoritas e repertório
+let simpleBusca = '';
+let simpleDragFavId = null;
+let simpleReaderState = { semitones: {}, fontSize: {} };
+
+function simpleNormalizar(txt){ return (txt||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
+function simpleEnsureFavOrder(){
+  if (!state) return;
+  if (!Array.isArray(state.favoritosOrdem)) state.favoritosOrdem = [];
+  state.repertorio.forEach(m => { if (typeof m.favorita === 'undefined') m.favorita = false; });
+  const favIds = state.repertorio.filter(m=>m.favorita).map(m=>m.id);
+  state.favoritosOrdem = state.favoritosOrdem.filter(id => favIds.includes(id));
+  favIds.forEach(id => { if (!state.favoritosOrdem.includes(id)) state.favoritosOrdem.push(id); });
+}
+function simpleSave(){
+  simpleEnsureFavOrder();
+  localStorage.setItem('cantoral_version', APP_VERSION);
+  localStorage.setItem('cantoral_state', JSON.stringify(state));
+}
+function simpleGetFavs(lista){
+  simpleEnsureFavOrder();
+  const map = new Map(lista.filter(m=>m.favorita).map(m=>[m.id,m]));
+  return state.favoritosOrdem.map(id=>map.get(id)).filter(Boolean);
+}
+function simpleGetOutras(lista){
+  return lista.filter(m=>!m.favorita).sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||'', 'pt-BR', {sensitivity:'base'}));
+}
+function simpleFiltrarMusicas(){
+  const q=simpleNormalizar(simpleBusca);
+  let lista = state.repertorio || [];
+  if (!q) return lista;
+  return lista.filter(m => simpleNormalizar([m.titulo,m.artista,m.tom,(m.tags||[]).join(' '),m.letra,m.cifra].join(' ')).includes(q));
+}
+function simpleGetSelected(){
+  let m = state.repertorio.find(x=>x.id===state.musicaSelecionadaId);
+  if (m) return m;
+  const fav = simpleGetFavs(state.repertorio)[0];
+  if (fav) return fav;
+  return simpleGetOutras(state.repertorio)[0] || null;
+}
+function simpleSelectMusic(id){
+  state.musicaSelecionadaId = id;
+  simpleSave();
+  if (window.innerWidth <= 768) simpleCloseMobilePanel();
+  simpleRender();
+}
+function simpleToggleFav(id){
+  simpleEnsureFavOrder();
+  const m = state.repertorio.find(x=>x.id===id);
+  if (!m) return;
+  m.favorita = !m.favorita;
+  if (m.favorita && !state.favoritosOrdem.includes(id)) state.favoritosOrdem.push(id);
+  if (!m.favorita) state.favoritosOrdem = state.favoritosOrdem.filter(x=>x!==id);
+  simpleSave();
+  simpleRender();
+}
+function simpleDragStart(ev,id){ simpleDragFavId=id; ev.dataTransfer.effectAllowed='move'; }
+function simpleDragOver(ev){ ev.preventDefault(); }
+function simpleDrop(ev,targetId){
+  ev.preventDefault();
+  if (!simpleDragFavId || simpleDragFavId===targetId) return;
+  simpleEnsureFavOrder();
+  const arr = state.favoritosOrdem.filter(id=>id!==simpleDragFavId);
+  const idx = arr.indexOf(targetId);
+  arr.splice(idx<0?arr.length:idx,0,simpleDragFavId);
+  state.favoritosOrdem = arr;
+  simpleDragFavId=null;
+  simpleSave();
+  simpleRender();
+}
+function simpleTomBase(m){ return parseTom(m?.tom || 'C'); }
+function simpleSemitones(id){ return (simpleReaderState.semitones && simpleReaderState.semitones[id]) || 0; }
+function simpleFont(id){ return (simpleReaderState.fontSize && simpleReaderState.fontSize[id]) || 16; }
+function simpleTomAtual(m){ const t=TONS[(simpleTomBase(m)+simpleSemitones(m.id)+120)%12]; return TONS_PT[t] || t; }
+function simpleMudarTom(id,delta){ simpleReaderState.semitones[id]=(simpleSemitones(id)+delta); simpleRenderMain(); }
+function simpleMudarFonte(id,delta){ simpleReaderState.fontSize[id]=Math.min(30,Math.max(11,simpleFont(id)+delta)); simpleRenderMain(); }
+function simpleConteudo(m){
+  const txt = m?.cifra || m?.letra || 'Sem conteúdo cadastrado.';
+  const semi = simpleSemitones(m.id);
+  return txt.split('\n').map(l => ehLinhaDeCifra(l) ? `<span class="cifra-line">${escapeHtml(transporLinha(l, semi))}</span>` : escapeHtml(l)).join('\n');
+}
+function simpleRow(m, selectedId, isFav){
+  return `<div class="simple-music-row ${selectedId===m.id?'active':''}" data-id="${m.id}" draggable="${isFav?'true':'false'}" onclick="simpleSelectMusic('${m.id}')" ondragstart="simpleDragStart(event,'${m.id}')" ondragover="simpleDragOver(event)" ondrop="simpleDrop(event,'${m.id}')">
+    <span class="simple-drag">${isFav?'☰':''}</span>
+    <button class="simple-fav ${m.favorita?'active':''}" onclick="event.stopPropagation();simpleToggleFav('${m.id}')">${m.favorita?'★':'☆'}</button>
+    <div class="simple-row-info"><div class="simple-row-title">${escapeHtml(m.titulo||'')}</div><div class="simple-row-meta">${escapeHtml(m.artista||'—')} ${m.tom?'· '+escapeHtml(TONS_PT[m.tom]||m.tom):''}</div></div>
+  </div>`;
+}
+function simpleRenderSidebar(){
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  sidebar.innerHTML = `<button id="sidebar-collapse-btn" class="sidebar-collapse-btn" onclick="simpleTogglePanel()">⇤ Recolher painel</button><div id="cantoral-simple-sidebar-content"></div>`;
+  const content = document.getElementById('cantoral-simple-sidebar-content');
+  const lista = simpleFiltrarMusicas();
+  const favs = simpleGetFavs(lista);
+  const outras = simpleGetOutras(lista);
+  const sel = simpleGetSelected();
+  content.innerHTML = `<div class="simple-sidebar-header"><div class="simple-sidebar-title">🎵 Músicas <button class="btn btn-outline btn-sm" onclick="showPage('repertorio');switchRepTab('adicionar')">+</button></div><div class="simple-sidebar-hint">Favoritas no topo. Arraste as favoritas para ordenar. Clique em uma música para abrir.</div></div>
+    <input class="simple-search" value="${escapeHtml(simpleBusca)}" placeholder="Buscar música..." oninput="simpleBusca=this.value;simpleRenderSidebar()">
+    <div class="simple-sidebar-list">
+      <div class="simple-section-title">⭐ Favoritas</div>
+      ${favs.length ? favs.map(m=>simpleRow(m,sel?.id,true)).join('') : '<div style="font-size:12px;color:var(--texto-claro);padding:8px">Nenhuma favorita ainda.</div>'}
+      <div class="simple-section-title">Todas as músicas</div>
+      ${outras.length ? outras.map(m=>simpleRow(m,sel?.id,false)).join('') : '<div style="font-size:12px;color:var(--texto-claro);padding:8px">Nenhuma música encontrada.</div>'}
+    </div>`;
+}
+function simpleRenderMain(){
+  const main = document.querySelector('.main');
+  if (!main) return;
+  let root = document.getElementById('cantoral-simple-root');
+  if (!root) { main.innerHTML = '<div id="cantoral-simple-root"></div>'; root = document.getElementById('cantoral-simple-root'); }
+  const m = simpleGetSelected();
+  if (m && state.musicaSelecionadaId !== m.id) state.musicaSelecionadaId = m.id;
+  root.innerHTML = `<div class="simple-reader-wrap">
+    <div class="simple-topbar">
+      <div><div class="simple-title">Cantoral</div><div class="simple-sub">${state.repertorio.length} músicas · ${state.repertorio.filter(x=>x.favorita).length} favoritas</div></div>
+      <div class="simple-actions">
+        <button class="btn btn-outline btn-sm simple-mobile-panel-btn" onclick="simpleOpenMobilePanel()">☰ Músicas</button>
+        <button class="btn btn-primary btn-sm" onclick="showPage('repertorio');switchRepTab('adicionar')">🎵 Adicionar Música</button>
+      </div>
+    </div>
+    ${m ? simpleReader(m) : `<div class="simple-empty"><div class="simple-empty-title">Nenhuma música no repertório</div><div>Adicione uma música para começar.</div><br><button class="btn btn-primary" onclick="showPage('repertorio');switchRepTab('adicionar')">Adicionar Música</button></div>`}
+  </div>`;
+}
+function simpleReader(m){
+  const tom=simpleTomAtual(m), font=simpleFont(m.id);
+  return `<div class="simple-reader-card">
+    <div class="simple-reader-header">
+      <div><div class="simple-song-title">${escapeHtml(m.titulo||'')}</div><div class="simple-song-meta">${escapeHtml(m.artista||'—')} · Tom: ${escapeHtml(tom)}</div>
+        <div class="simple-controls"><span class="simple-label">Tom:</span><button class="tone-btn" onclick="simpleMudarTom('${m.id}',-1)">♭</button><span class="simple-tone">${escapeHtml(tom)}</span><button class="tone-btn" onclick="simpleMudarTom('${m.id}',1)">♯</button><button class="tone-btn" onclick="simpleMudarFonte('${m.id}',-1)" style="font-size:12px;font-weight:900;width:36px">A−</button><button class="tone-btn" onclick="simpleMudarFonte('${m.id}',1)" style="font-size:15px;font-weight:900;width:36px">A+</button></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-outline btn-sm" onclick="simpleToggleFav('${m.id}')">${m.favorita?'★ Favorita':'☆ Favoritar'}</button></div>
+    </div>
+    <div class="simple-content" style="font-size:${font}px">${simpleConteudo(m)}</div>
+  </div>`;
+}
+function simpleTogglePanel(){
+  const app=document.querySelector('.app');
+  app.classList.toggle('music-panel-collapsed');
+  localStorage.setItem('cantoral_music_panel_collapsed', app.classList.contains('music-panel-collapsed')?'1':'0');
+}
+function simpleOpenMobilePanel(){ document.getElementById('sidebar')?.classList.add('mobile-open'); document.body.classList.add('simple-mobile-dim'); }
+function simpleCloseMobilePanel(){ document.getElementById('sidebar')?.classList.remove('mobile-open'); document.body.classList.remove('simple-mobile-dim'); }
+function simpleRender(){ simpleRenderSidebar(); simpleRenderMain(); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.querySelector('.nav-btn[onclick*="repertorio"]')?.classList.add('active'); }
+
+const originalShowPageForAddMusic = window.showPage;
+window.showPage = function(page){
+  if (page === 'repertorio') {
+    document.body.classList.remove('cantoral-simple-mode');
+    document.getElementById('sidebar').style.display='none';
+    document.getElementById('view-home').style.display='none';
+    document.getElementById('view-catalogo').style.display='none';
+    document.getElementById('view-repertorio').style.display='block';
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',(b.getAttribute('onclick')||'').includes('repertorio')));
+    if (typeof renderRepertorio === 'function') renderRepertorio();
+    return;
+  }
+  simpleStart();
+};
+
+function simpleStart(){
+  document.body.classList.add('cantoral-simple-mode');
+  document.querySelector('.app')?.classList.toggle('music-panel-collapsed', localStorage.getItem('cantoral_music_panel_collapsed')==='1');
+  // remove definitivamente o conceito de celebração solicitado pelo usuário
+  if (Array.isArray(state.catalogos) && state.catalogos.length) { state.catalogos = []; state.catalogoAtivo = null; simpleSave(); }
+  document.getElementById('view-home').style.display='none';
+  document.getElementById('view-catalogo').style.display='none';
+  document.getElementById('view-repertorio').style.display='none';
+  const sidebar=document.getElementById('sidebar'); if (sidebar) sidebar.style.display='block';
+  simpleRender();
+}
+
+document.addEventListener('click', function(e){ if (document.body.classList.contains('simple-mobile-dim') && !e.target.closest('#sidebar') && !e.target.closest('.simple-mobile-panel-btn')) simpleCloseMobilePanel(); });
+
+// iniciar no novo modo simples
+try { simpleStart(); } catch(e) { console.error('Erro ao iniciar Cantoral simples', e); }
+</script>
+
 </body>
 </html>
