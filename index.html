@@ -936,6 +936,45 @@
     color: var(--texto-claro);
   }
   .leitor-empty-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; color: var(--azul-medio); margin-bottom: 8px; }
+
+  /* V1.6.3: remove bloco de celebrações do painel lateral; deixa apenas músicas */
+  .sidebar > .sidebar-title,
+  .sidebar > #catalogos-list,
+  .sidebar > .add-catalogo-btn {
+    display: none !important;
+  }
+  .sidebar-musicas-panel {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: none;
+  }
+  .sidebar-musicas-lista {
+    max-height: calc(100vh - 260px);
+  }
+  .leitor-inline-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .leitor-inline-label {
+    color: var(--texto-medio);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .leitor-tone-display {
+    background: var(--azul-medio);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 18px;
+    font-size: 13px;
+    font-weight: 900;
+    min-width: 58px;
+    text-align: center;
+  }
   @media (max-width: 768px) {
     .sidebar-musicas-panel { display: none; }
     .sidebar-collapse-btn { display: none; }
@@ -5305,6 +5344,7 @@ function saveState() {
 // ═══════════════════════════════════════════════════════
 
 let painelMusicasBusca = '';
+let leitorState = { semitones: {}, fontSize: {} };
 
 function garantirPainelLateralMusicas() {
   const sidebar = document.getElementById('sidebar');
@@ -5375,13 +5415,13 @@ function renderSidebarMusicas() {
       <div class="sidebar-musicas-title">🎵 Músicas</div>
       <button class="btn btn-outline btn-sm" onclick="showPage('repertorio');switchRepTab('adicionar')">+</button>
     </div>
-    <div class="sidebar-musicas-sub">Favoritas no topo. Arraste as favoritas para ordenar. Clique em uma música para abrir à direita.</div>
+    <div class="sidebar-musicas-sub">Favoritas no topo, separadas das demais. Arraste as favoritas para ordenar.</div>
     <input class="sidebar-musicas-search" type="text" value="${escapeHtml(painelMusicasBusca)}" placeholder="Buscar música..." oninput="painelMusicasBusca=this.value;renderSidebarMusicas()">
     <div class="sidebar-musicas-lista">
-      ${favoritas.length ? '<div class="sidebar-music-section">⭐ Favoritas</div>' : ''}
-      ${favoritas.map(m => renderSidebarMusicRow(m, selecionada?.id)).join('')}
-      ${outras.length ? '<div class="sidebar-music-section">Todas as músicas</div>' : ''}
-      ${outras.map(m => renderSidebarMusicRow(m, selecionada?.id)).join('')}
+      <div class="sidebar-music-section">⭐ Favoritas</div>
+      ${favoritas.length ? favoritas.map(m => renderSidebarMusicRow(m, selecionada?.id)).join('') : '<div style="padding:10px 8px;color:var(--texto-claro);font-size:12px">Nenhuma favorita ainda.</div>'}
+      <div class="sidebar-music-section">Todas as músicas</div>
+      ${outras.length ? outras.map(m => renderSidebarMusicRow(m, selecionada?.id)).join('') : '<div style="padding:10px 8px;color:var(--texto-claro);font-size:12px">Nenhuma música fora das favoritas.</div>'}
       ${!favoritas.length && !outras.length ? '<div style="padding:18px 8px;text-align:center;color:var(--texto-claro);font-size:12px">Nenhuma música encontrada.</div>' : ''}
     </div>`;
 }
@@ -5440,29 +5480,68 @@ function renderLeitorVazio() {
   return `<div class="leitor-empty"><div class="leitor-empty-title">Selecione uma música</div><div>Clique em uma música no painel lateral para abrir a cifra ou a letra.</div></div>`;
 }
 
+function getLeitorSemitones(id) {
+  if (!leitorState.semitones) leitorState.semitones = {};
+  return leitorState.semitones[id] || 0;
+}
+
+function getLeitorFontSize(id) {
+  if (!leitorState.fontSize) leitorState.fontSize = {};
+  return leitorState.fontSize[id] || 16;
+}
+
+function getTomAtualLeitor(m) {
+  const tomBase = parseTom(m.tom || 'C');
+  const semitones = getLeitorSemitones(m.id);
+  const tomAtual = TONS[(tomBase + semitones + 120) % 12];
+  return TONS_PT[tomAtual] || tomAtual;
+}
+
+function mudarTomLeitor(id, delta) {
+  if (!leitorState.semitones) leitorState.semitones = {};
+  leitorState.semitones[id] = getLeitorSemitones(id) + delta;
+  renderCatalogoContent();
+}
+
+function mudarFonteLeitor(id, delta) {
+  if (!leitorState.fontSize) leitorState.fontSize = {};
+  leitorState.fontSize[id] = Math.min(28, Math.max(11, getLeitorFontSize(id) + delta));
+  renderCatalogoContent();
+}
+
 function renderLeitorMusicaDireita(m) {
-  const tom = m.tom ? (TONS_PT[m.tom] || m.tom) : '—';
+  const tom = getTomAtualLeitor(m);
   const conteudo = renderConteudoCifraInline(m);
+  const fontSize = getLeitorFontSize(m.id);
   return `
     <div class="leitor-musica-card">
       <div class="leitor-musica-header">
         <div>
           <div class="leitor-musica-title">${escapeHtml(m.titulo || '')}</div>
           <div class="leitor-musica-meta">${escapeHtml(m.artista || '—')} · Tom: ${escapeHtml(tom)}</div>
+          <div class="leitor-inline-controls">
+            <span class="leitor-inline-label">Tom:</span>
+            <button class="tone-btn" onclick="mudarTomLeitor('${m.id}', -1)">♭</button>
+            <span class="leitor-tone-display">${escapeHtml(tom)}</span>
+            <button class="tone-btn" onclick="mudarTomLeitor('${m.id}', 1)">♯</button>
+            <button class="tone-btn" onclick="mudarFonteLeitor('${m.id}', -1)" style="font-size:12px;font-weight:900;width:36px">A−</button>
+            <button class="tone-btn" onclick="mudarFonteLeitor('${m.id}', 1)" style="font-size:15px;font-weight:900;width:36px">A+</button>
+          </div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
           <button class="btn btn-outline btn-sm" onclick="toggleFavorita('${m.id}')">${m.favorita ? '★ Favorita' : '☆ Favoritar'}</button>
           <button class="btn btn-primary btn-sm" onclick="abrirViewer('${m.id}')">Tela cheia</button>
         </div>
       </div>
-      <div class="leitor-musica-content">${conteudo}</div>
+      <div class="leitor-musica-content" style="font-size:${fontSize}px">${conteudo}</div>
     </div>`;
 }
 
 function renderConteudoCifraInline(m) {
   const texto = m.cifra || m.letra || 'Sem conteúdo cadastrado.';
+  const semitones = getLeitorSemitones(m.id);
   return texto.split('\n').map(linha => {
-    if (ehLinhaDeCifra(linha)) return `<span class="cifra-line">${escapeHtml(linha)}</span>`;
+    if (ehLinhaDeCifra(linha)) return `<span class="cifra-line">${escapeHtml(transporLinha(linha, semitones))}</span>`;
     return escapeHtml(linha);
   }).join('\n');
 }
