@@ -458,7 +458,7 @@
   .search-bar:focus { border-color: var(--azul-claro); box-shadow: 0 0 0 4px rgba(91,155,213,0.12); }
   .search-icon { position: absolute; left: 17px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--texto-claro); }
 
-  .filtro-momento-wrapper { margin: -10px 0 24px; }
+  .filtro-momento-wrapper { display:none; margin: -10px 0 24px; }
   .filtro-momento-select {
     width: 100%;
     padding: 12px 16px;
@@ -551,6 +551,86 @@
     justify-content: center;
     font-size: 18px;
     flex-shrink: 0;
+  }
+
+
+
+  /* ── LISTA SIMPLIFICADA DA CELEBRAÇÃO ── */
+  .celebracao-simples-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--sombra);
+    overflow: hidden;
+    margin-top: 18px;
+  }
+  .celebracao-simples-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 22px;
+    background: linear-gradient(135deg, var(--azul-gelo), var(--azul-branco));
+    border-bottom: 1px solid var(--azul-palido);
+  }
+  .celebracao-simples-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--azul-profundo);
+  }
+  .celebracao-simples-sub {
+    color: var(--texto-claro);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .musicas-simples-lista, .seletor-musicas-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 22px;
+  }
+  .musica-simple-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--azul-branco);
+    border: 1px solid var(--cinza-suave);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.16s;
+  }
+  .musica-simple-row:hover {
+    background: var(--azul-gelo);
+    border-color: var(--azul-claro);
+  }
+  .musica-simple-row.dragging { opacity: 0.45; }
+  .drag-handle-fav {
+    color: var(--texto-claro);
+    font-weight: 800;
+    cursor: grab;
+    font-size: 16px;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .musica-simple-info { flex: 1; min-width: 0; }
+  .musica-simple-title { font-weight: 800; color: var(--texto-escuro); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .musica-simple-meta { font-size: 12px; color: var(--texto-claro); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lista-separador {
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--texto-claro);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin: 10px 0 2px;
+  }
+  .seletor-toolbar { padding: 16px 22px 0; }
+  .seletor-status { padding: 10px 22px 0; color: var(--texto-claro); font-size: 12px; }
+  @media (max-width: 768px) {
+    .celebracao-simples-header { padding: 14px 16px; flex-direction: column; align-items: flex-start; }
+    .musicas-simples-lista, .seletor-musicas-lista { padding: 12px 14px; }
+    .musica-simple-row { padding: 11px 12px; }
   }
 
   /* ── MOMENTOS MANAGEMENT ── */
@@ -959,6 +1039,29 @@ Eis-me aqui, Senhor..."></textarea>
       </div>
     </div>
     <div class="musica-content" id="viewer-content"></div>
+  </div>
+</div>
+
+
+
+<!-- Modal: Selecionar Música Simplificado -->
+<div class="overlay" id="modal-seletor-musica">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">🎵 Escolher Música</div>
+        <div style="font-size:12px;color:var(--texto-claro);margin-top:3px">Favoritas aparecem no topo. Toque em uma música para adicionar à celebração.</div>
+      </div>
+      <button class="modal-close" onclick="fecharModal('modal-seletor-musica')">✕</button>
+    </div>
+    <div class="seletor-toolbar">
+      <div class="search-bar-wrapper" style="margin-bottom:0">
+        <span class="search-icon">🔍</span>
+        <input class="search-bar" id="seletor-musica-search" type="text" placeholder="Buscar música..." oninput="renderSeletorMusicas()">
+      </div>
+    </div>
+    <div class="seletor-status" id="seletor-musica-status"></div>
+    <div class="seletor-musicas-lista" id="seletor-musicas-lista"></div>
   </div>
 </div>
 
@@ -4759,6 +4862,260 @@ function aplicarMigracoes() {
   normalizarRepertorio();
   removerMusicasIncompletasDoEstado();
   saveState();
+}
+
+
+
+// ═══════════════════════════════════════════════════════
+// MODO SIMPLIFICADO: FAVORITAS NO TOPO + LISTA ÚNICA
+// ═══════════════════════════════════════════════════════
+
+let seletorCatalogoAtual = null;
+let dragFavId = null;
+
+function garantirFavoritosOrdem() {
+  if (!Array.isArray(state.favoritosOrdem)) state.favoritosOrdem = [];
+  state.favoritosOrdem = state.favoritosOrdem.filter(id => state.repertorio.some(m => m.id === id && m.favorita));
+  state.repertorio.filter(m => m.favorita && !state.favoritosOrdem.includes(m.id)).forEach(m => state.favoritosOrdem.push(m.id));
+}
+
+function getFavIndex(id) {
+  garantirFavoritosOrdem();
+  const idx = state.favoritosOrdem.indexOf(id);
+  return idx === -1 ? 999999 : idx;
+}
+
+function ordenarMusicasSimples(musicas) {
+  garantirFavoritosOrdem();
+  return [...musicas].sort((a,b) => {
+    if (!!a.favorita !== !!b.favorita) return a.favorita ? -1 : 1;
+    if (a.favorita && b.favorita) return getFavIndex(a.id) - getFavIndex(b.id);
+    return (a.titulo || '').localeCompare(b.titulo || '', 'pt-BR', { sensitivity: 'base' });
+  });
+}
+
+function getMusicasDoCatalogoSimples(cat) {
+  const ids = [];
+  (cat.momentos || []).forEach(mt => (mt.musicas || []).forEach(id => { if (!ids.includes(id)) ids.push(id); }));
+  return ids.map(id => state.repertorio.find(m => m.id === id)).filter(Boolean);
+}
+
+function adicionarMusicaAoCatalogoSimples(catId, musicaId) {
+  const cat = state.catalogos.find(c => c.id === catId);
+  if (!cat) return;
+  if (!cat.momentos || cat.momentos.length === 0) cat.momentos = MOMENTOS_PADRAO.map(m => ({ ...m, ativo: true, musicas: [] }));
+  let bucket = cat.momentos.find(m => m.ativo) || cat.momentos[0];
+  if (!bucket.musicas) bucket.musicas = [];
+  const jaExiste = (cat.momentos || []).some(mt => (mt.musicas || []).includes(musicaId));
+  if (!jaExiste) {
+    bucket.musicas.push(musicaId);
+    saveState();
+    toast('✅ Música adicionada à celebração');
+  } else {
+    toast('ℹ️ Música já está nesta celebração');
+  }
+  fecharModal('modal-seletor-musica');
+  renderCatalogoContent();
+}
+
+function removerMusicaDoCatalogoSimples(catId, musicaId) {
+  const cat = state.catalogos.find(c => c.id === catId);
+  if (!cat) return;
+  (cat.momentos || []).forEach(mt => { mt.musicas = (mt.musicas || []).filter(id => id !== musicaId); });
+  saveState();
+  renderCatalogoContent();
+  toast('🗑 Música removida da celebração');
+}
+
+function renderCatalogoContent() {
+  garantirFavoritosOrdem();
+  const container = document.getElementById('catalogo-content');
+  const cat = state.catalogos.find(c => c.id === state.catalogoAtivo);
+  if (!cat) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🎵</div>
+        <div class="empty-title">Bem-vindo ao Cantoral</div>
+        <div class="empty-sub">Crie sua primeira celebração para organizar seu repertório.</div>
+        <button class="btn btn-primary" onclick="abrirModalNovoCatalogo()">✝ Criar Primeira Celebração</button>
+      </div>`;
+    return;
+  }
+
+  const musicas = ordenarMusicasSimples(getMusicasDoCatalogoSimples(cat));
+  const tipo = getTipoCelebracao(cat.tipoId);
+  const tempo = getTempoLiturgico(cat.tempoId);
+  container.innerHTML = `
+    <div class="cat-header">
+      <div>
+        <div class="cat-header-title">${escapeHtml(cat.nome)}</div>
+        <div class="cat-header-sub"><span class="tipo-badge">${tipo.icon} ${escapeHtml(tipo.nome)}</span> <span class="tipo-badge">${tempo.icon} ${escapeHtml(tempo.nome)}</span> &nbsp; ${musicas.length} música${musicas.length!==1?'s':''}</div>
+      </div>
+      <div class="cat-actions">
+        <button class="btn btn-gold btn-sm" onclick="gerarSugestoesCatalogo()">✨ Gerar Sugestões</button>
+        <button class="btn btn-primary btn-sm" onclick="abrirSeletorMusicas('${cat.id}')">🎵 Adicionar Música</button>
+      </div>
+    </div>
+    <div class="celebracao-simples-card">
+      <div class="celebracao-simples-header">
+        <div>
+          <div class="celebracao-simples-title">Músicas da celebração</div>
+          <div class="celebracao-simples-sub">Favoritas no topo. Arraste as favoritas para mudar a ordem.</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="abrirSeletorMusicas('${cat.id}')">+ Música</button>
+      </div>
+      <div class="musicas-simples-lista" id="lista-celebracao-simples">
+        ${renderListaSimplesRows(musicas, { contexto: 'celebracao', catId: cat.id })}
+      </div>
+    </div>`;
+}
+
+function renderListaSimplesRows(musicas, opts={}) {
+  if (!musicas.length) {
+    return `<div style="text-align:center;padding:36px 10px;color:var(--texto-claro)">Nenhuma música adicionada ainda.</div>`;
+  }
+  let html = '';
+  let mostrouFav = false, mostrouTodas = false;
+  musicas.forEach(m => {
+    if (m.favorita && !mostrouFav) { html += `<div class="lista-separador">⭐ Favoritas</div>`; mostrouFav = true; }
+    if (!m.favorita && !mostrouTodas) { html += `<div class="lista-separador">Todas as músicas</div>`; mostrouTodas = true; }
+    html += renderMusicaSimpleRow(m, opts);
+  });
+  return html;
+}
+
+function renderMusicaSimpleRow(m, opts={}) {
+  const removeBtn = opts.contexto === 'celebracao' ? `<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();removerMusicaDoCatalogoSimples('${opts.catId}','${m.id}')">×</button>` : '';
+  const addBtn = opts.contexto === 'seletor' ? `<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();adicionarMusicaAoCatalogoSimples('${opts.catId}','${m.id}')">Usar</button>` : '';
+  const draggable = m.favorita ? 'true' : 'false';
+  const handle = m.favorita ? '☰' : '';
+  return `
+    <div class="musica-simple-row" data-id="${m.id}" draggable="${draggable}" onclick="abrirViewer('${m.id}')" ondragstart="dragFavoritaStart(event,'${m.id}')" ondragover="dragFavoritaOver(event)" ondrop="dropFavorita(event,'${m.id}')" ondragend="dragFavoritaEnd(event)">
+      <span class="drag-handle-fav">${handle}</span>
+      <button class="fav-btn ${m.favorita ? 'active' : ''}" title="${m.favorita ? 'Remover das favoritas' : 'Adicionar às favoritas'}" onclick="event.stopPropagation();toggleFavorita('${m.id}')">${m.favorita ? '★' : '☆'}</button>
+      <div class="musica-simple-info">
+        <div class="musica-simple-title">${escapeHtml(m.titulo || '')}</div>
+        <div class="musica-simple-meta">${escapeHtml(m.artista || '—')} ${m.tom ? '· Tom: ' + escapeHtml(TONS_PT[m.tom] || m.tom) : ''}</div>
+      </div>
+      ${addBtn}
+      ${removeBtn}
+    </div>`;
+}
+
+function abrirSeletorMusicas(catId) {
+  seletorCatalogoAtual = catId;
+  const input = document.getElementById('seletor-musica-search');
+  if (input) input.value = '';
+  renderSeletorMusicas();
+  abrirModal('modal-seletor-musica');
+}
+
+function renderSeletorMusicas() {
+  const list = document.getElementById('seletor-musicas-lista');
+  const status = document.getElementById('seletor-musica-status');
+  if (!list) return;
+  const q = normalizarTexto(document.getElementById('seletor-musica-search')?.value || '');
+  const cat = state.catalogos.find(c => c.id === seletorCatalogoAtual);
+  const idsJa = new Set(cat ? getMusicasDoCatalogoSimples(cat).map(m => m.id) : []);
+  let musicas = state.repertorio.filter(m => !idsJa.has(m.id));
+  if (q) {
+    musicas = musicas.filter(m => normalizarTexto([m.titulo, m.artista, m.tom, (m.tags||[]).join(' '), m.cifra, m.letra].join(' ')).includes(q));
+  }
+  musicas = ordenarMusicasSimples(musicas);
+  status.textContent = `${musicas.length} música${musicas.length!==1?'s':''} disponível${musicas.length!==1?'eis':''}`;
+  list.innerHTML = renderListaSimplesRows(musicas, { contexto: 'seletor', catId: seletorCatalogoAtual });
+}
+
+function renderRepertorio() {
+  garantirFavoritosOrdem();
+  const lista = ordenarMusicasSimples(state.repertorio);
+  renderListaMusicas('rep-grid', lista, 'Repertório vazio', 'Busque músicas na aba "Adicionar Nova"');
+  aplicarFiltrosRepertorio();
+}
+
+function renderFavoritas() {
+  garantirFavoritosOrdem();
+  const favoritas = ordenarMusicasSimples(state.repertorio.filter(m => m.favorita));
+  renderListaMusicas('fav-grid', favoritas, 'Nenhuma música favorita', 'Toque na estrela das músicas para adicioná-las aqui.');
+  aplicarFiltrosFavoritas();
+}
+
+function toggleFavorita(id) {
+  const musica = state.repertorio.find(m => m.id === id);
+  if (!musica) return;
+  musica.favorita = !musica.favorita;
+  garantirFavoritosOrdem();
+  if (musica.favorita && !state.favoritosOrdem.includes(id)) state.favoritosOrdem.push(id);
+  if (!musica.favorita) state.favoritosOrdem = state.favoritosOrdem.filter(x => x !== id);
+  saveState();
+  renderCatalogoContent();
+  renderRepertorio();
+  renderFavoritas();
+  renderSeletorMusicas();
+  toast(musica.favorita ? '⭐ Música adicionada às favoritas' : '☆ Música removida das favoritas');
+}
+
+function dragFavoritaStart(ev, id) {
+  const m = state.repertorio.find(x => x.id === id);
+  if (!m?.favorita) { ev.preventDefault(); return; }
+  dragFavId = id;
+  ev.currentTarget.classList.add('dragging');
+  ev.dataTransfer.effectAllowed = 'move';
+}
+function dragFavoritaOver(ev) { if (dragFavId) ev.preventDefault(); }
+function dropFavorita(ev, targetId) {
+  ev.preventDefault();
+  if (!dragFavId || dragFavId === targetId) return;
+  const target = state.repertorio.find(x => x.id === targetId);
+  if (!target?.favorita) return;
+  garantirFavoritosOrdem();
+  const arr = state.favoritosOrdem.filter(id => id !== dragFavId);
+  const idx = arr.indexOf(targetId);
+  arr.splice(idx < 0 ? arr.length : idx, 0, dragFavId);
+  state.favoritosOrdem = arr;
+  saveState();
+  renderCatalogoContent();
+  renderRepertorio();
+  renderFavoritas();
+  renderSeletorMusicas();
+}
+function dragFavoritaEnd(ev) {
+  ev.currentTarget?.classList?.remove('dragging');
+  dragFavId = null;
+}
+
+// Ajusta sugestões para a lista única: adiciona uma seleção inicial de músicas sem separar por momento.
+function gerarSugestoesCatalogo() {
+  const cat = state.catalogos.find(c => c.id === state.catalogoAtivo);
+  if (!cat) return;
+  const atuais = getMusicasDoCatalogoSimples(cat);
+  const substituir = atuais.length ? confirm('A celebração já possui músicas. Deseja substituir pela sugestão automática?') : true;
+  if (!substituir) return;
+  (cat.momentos || []).forEach(mt => mt.musicas = []);
+  const escolhidas = [];
+  const momentosBase = ['entrada','ato-penitencial','gloria','aclamacao','ofertorio','santo','comunhao','acao-gracas','encerramento'];
+  momentosBase.forEach(mid => {
+    const candidatos = state.repertorio
+      .filter(m => !escolhidas.includes(m.id))
+      .map(m => ({ musica: m, score: pontuarMusicaParaSugestao(m, mid, cat) }))
+      .filter(x => x.score > 0)
+      .sort((a,b) => b.score - a.score || (a.musica.titulo||'').localeCompare(b.musica.titulo||'', 'pt-BR'));
+    if (candidatos.length) escolhidas.push(candidatos[0].musica.id);
+  });
+  if (!cat.momentos || !cat.momentos.length) cat.momentos = MOMENTOS_PADRAO.map(m => ({ ...m, ativo: true, musicas: [] }));
+  const bucket = cat.momentos.find(m => m.ativo) || cat.momentos[0];
+  bucket.musicas = escolhidas;
+  saveState();
+  renderCatalogoContent();
+  toast(`✨ ${escolhidas.length} música${escolhidas.length!==1?'s':''} sugerida${escolhidas.length!==1?'s':''}`);
+}
+
+// Ao salvar, também mantém a nova ordenação das favoritas.
+const salvarStateOriginal = saveState;
+function saveState() {
+  garantirFavoritosOrdem();
+  localStorage.setItem('cantoral_version', APP_VERSION);
+  localStorage.setItem('cantoral_state', JSON.stringify(state));
 }
 
 // ═══════════════════════════════════════════════════════
