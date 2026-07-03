@@ -2675,7 +2675,7 @@ async function buscarMusicaInternetAutomatica() {
             <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();importarResultadoInternet(${idx})">Importar</button>
           </div>
         </div>`;
-    }).join('');
+    }).join('\n');
   } catch (e) {
     alvo.innerHTML = `<div class="busca-loading" style="text-align:left;color:#c0392b">Erro na busca automática: ${escapeHtml(e.message)}</div>`;
   }
@@ -5461,12 +5461,10 @@ function renderLeitorMusicaDireita(m) {
 
 function renderConteudoCifraInline(m) {
   const texto = m.cifra || m.letra || 'Sem conteúdo cadastrado.';
-  return texto.split('
-').map(linha => {
+  return texto.split('\n').map(linha => {
     if (ehLinhaDeCifra(linha)) return `<span class="cifra-line">${escapeHtml(linha)}</span>`;
     return escapeHtml(linha);
-  }).join('
-');
+  }).join('\n');
 }
 
 const toggleFavoritaV15 = toggleFavorita;
