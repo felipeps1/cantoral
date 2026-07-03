@@ -1009,7 +1009,7 @@
           <div class="home-card-text">Crie um novo catálogo para a próxima missa e escolha os momentos litúrgicos desejados.</div>
         </div>
       </div>
-      <div class="app-version">Cantoral v1.4.1 · Músicas incompletas removidas</div>
+      <div class="app-version">Cantoral v1.6.2 · Painel lateral corrigido</div>
     </div>
 
     <!-- VIEW: CATALOGOS -->
@@ -2081,6 +2081,7 @@ function alterarTipoCatalogo(catId, tipoId) {
 // ═══════════════════════════════════════════════════════
 
 function showPage(page) {
+  if (typeof restaurarEstadoPainelMusicas === 'function') restaurarEstadoPainelMusicas();
   document.getElementById('view-home').style.display = page === 'home' ? 'block' : 'none';
   document.getElementById('view-catalogo').style.display = page === 'catalogos' ? 'block' : 'none';
   document.getElementById('view-repertorio').style.display = page === 'repertorio' ? 'block' : 'none';
@@ -2089,7 +2090,11 @@ function showPage(page) {
     const click = b.getAttribute('onclick') || '';
     b.classList.toggle('active', click.includes(`'${page}'`));
   });
-  if (page === 'catalogos') renderSidebar();
+  if (page === 'catalogos') {
+    renderSidebar();
+    if (typeof garantirPainelLateralMusicas === 'function') garantirPainelLateralMusicas();
+    if (typeof renderSidebarMusicas === 'function') renderSidebarMusicas();
+  }
   if (page === 'repertorio') renderRepertorio();
 }
 
@@ -5225,6 +5230,7 @@ function toggleFavorita(id) {
   renderRepertorio();
   renderFavoritas();
   renderSeletorMusicas();
+  if (typeof renderSidebarMusicas === 'function') renderSidebarMusicas();
   toast(musica.favorita ? '⭐ Música adicionada às favoritas' : '☆ Música removida das favoritas');
 }
 
@@ -5251,6 +5257,7 @@ function dropFavorita(ev, targetId) {
   renderRepertorio();
   renderFavoritas();
   renderSeletorMusicas();
+  if (typeof renderSidebarMusicas === 'function') renderSidebarMusicas();
 }
 function dragFavoritaEnd(ev) {
   ev.currentTarget?.classList?.remove('dragging');
@@ -5394,13 +5401,6 @@ function renderSidebarMusicRow(m, selecionadaId) {
     </div>`;
 }
 
-const renderSidebarV15 = renderSidebar;
-function renderSidebar() {
-  renderSidebarV15();
-  garantirPainelLateralMusicas();
-  renderSidebarMusicas();
-}
-
 function renderCatalogoContent() {
   garantirFavoritosOrdem();
   const container = document.getElementById('catalogo-content');
@@ -5465,30 +5465,6 @@ function renderConteudoCifraInline(m) {
     if (ehLinhaDeCifra(linha)) return `<span class="cifra-line">${escapeHtml(linha)}</span>`;
     return escapeHtml(linha);
   }).join('\n');
-}
-
-const toggleFavoritaV15 = toggleFavorita;
-function toggleFavorita(id) {
-  toggleFavoritaV15(id);
-  renderSidebarMusicas();
-  renderCatalogoContent();
-}
-
-const dropFavoritaV15 = dropFavorita;
-function dropFavorita(ev, targetId) {
-  dropFavoritaV15(ev, targetId);
-  renderSidebarMusicas();
-  renderCatalogoContent();
-}
-
-const showPageV15 = showPage;
-function showPage(page) {
-  restaurarEstadoPainelMusicas();
-  showPageV15(page);
-  if (page === 'catalogos') {
-    garantirPainelLateralMusicas();
-    renderSidebarMusicas();
-  }
 }
 
 // ═══════════════════════════════════════════════════════
