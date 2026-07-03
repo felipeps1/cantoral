@@ -771,6 +771,179 @@
     .toast-area { bottom: 16px; right: 16px; left: 16px; }
     .toast { justify-content: center; }
   }
+
+
+  /* ── V1.6: painel lateral de músicas + leitura à direita ── */
+  .sidebar-collapse-btn {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--azul-palido);
+    background: var(--azul-gelo);
+    color: var(--azul-medio);
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    margin: 10px 0 12px;
+  }
+  .sidebar-musicas-panel {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--azul-palido);
+  }
+  .sidebar-musicas-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .sidebar-musicas-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    color: var(--azul-profundo);
+    font-weight: 700;
+  }
+  .sidebar-musicas-sub {
+    color: var(--texto-claro);
+    font-size: 10.5px;
+    line-height: 1.35;
+    margin-bottom: 10px;
+  }
+  .sidebar-musicas-search {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--azul-palido);
+    border-radius: 12px;
+    background: white;
+    color: var(--texto-escuro);
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    outline: none;
+    margin-bottom: 10px;
+  }
+  .sidebar-musicas-search:focus { border-color: var(--azul-claro); box-shadow: 0 0 0 3px rgba(91,155,213,0.12); }
+  .sidebar-musicas-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: calc(100vh - 380px);
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+  .sidebar-music-section {
+    color: var(--texto-claro);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 900;
+    margin: 9px 0 3px;
+  }
+  .sidebar-music-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 8px;
+    border: 1px solid var(--cinza-suave);
+    background: var(--azul-branco);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .sidebar-music-row:hover { border-color: var(--azul-claro); background: var(--azul-gelo); }
+  .sidebar-music-row.active { border-color: var(--azul-medio); background: #dceeff; box-shadow: inset 3px 0 0 var(--azul-medio); }
+  .sidebar-music-row.dragging { opacity: .45; }
+  .sidebar-drag-handle { width: 14px; color: var(--texto-claro); font-weight: 900; text-align: center; cursor: grab; flex-shrink: 0; }
+  .sidebar-fav-btn {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    border: 1px solid var(--azul-palido);
+    background: white;
+    color: var(--texto-claro);
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .sidebar-fav-btn.active { color: var(--dourado); border-color: var(--dourado); background: #fff7d1; }
+  .sidebar-music-info { min-width: 0; flex: 1; }
+  .sidebar-music-title { color: var(--texto-escuro); font-size: 12.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sidebar-music-meta { color: var(--texto-claro); font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .app.music-panel-collapsed .sidebar {
+    width: 64px;
+    min-width: 64px;
+    padding: 12px 8px;
+  }
+  .app.music-panel-collapsed .sidebar-title,
+  .app.music-panel-collapsed #catalogos-list,
+  .app.music-panel-collapsed .add-catalogo-btn,
+  .app.music-panel-collapsed .sidebar-musicas-panel {
+    display: none !important;
+  }
+  .app.music-panel-collapsed .sidebar-collapse-btn {
+    height: 42px;
+    padding: 0;
+    font-size: 0;
+    margin-top: 4px;
+  }
+  .app.music-panel-collapsed .sidebar-collapse-btn::after {
+    content: '🎵';
+    font-size: 18px;
+  }
+  .leitor-musica-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--sombra);
+    overflow: hidden;
+    border: 1px solid var(--azul-palido);
+  }
+  .leitor-musica-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 26px;
+    background: linear-gradient(135deg, var(--azul-gelo), var(--azul-branco));
+    border-bottom: 1px solid var(--azul-palido);
+  }
+  .leitor-musica-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 31px;
+    color: var(--azul-profundo);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .leitor-musica-meta { color: var(--texto-claro); font-size: 13px; margin-top: 5px; }
+  .leitor-musica-content {
+    padding: 26px;
+    background: var(--azul-branco);
+    white-space: pre-wrap;
+    font-size: 16px;
+    line-height: 2;
+    min-height: 520px;
+  }
+  .leitor-empty {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--sombra);
+    border: 1px solid var(--azul-palido);
+    padding: 70px 30px;
+    text-align: center;
+    color: var(--texto-claro);
+  }
+  .leitor-empty-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; color: var(--azul-medio); margin-bottom: 8px; }
+  @media (max-width: 768px) {
+    .sidebar-musicas-panel { display: none; }
+    .sidebar-collapse-btn { display: none; }
+    .leitor-musica-content { min-height: 360px; font-size: 14px; padding: 18px; }
+    .leitor-musica-header { padding: 18px; }
+    .leitor-musica-title { font-size: 25px; }
+  }
+
 </style>
 </head>
 <body>
@@ -5116,6 +5289,208 @@ function saveState() {
   garantirFavoritosOrdem();
   localStorage.setItem('cantoral_version', APP_VERSION);
   localStorage.setItem('cantoral_state', JSON.stringify(state));
+}
+
+
+
+// ═══════════════════════════════════════════════════════
+// V1.6 - Painel lateral de músicas + leitor à direita
+// ═══════════════════════════════════════════════════════
+
+let painelMusicasBusca = '';
+
+function garantirPainelLateralMusicas() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+
+  let btn = document.getElementById('sidebar-collapse-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'sidebar-collapse-btn';
+    btn.className = 'sidebar-collapse-btn';
+    btn.onclick = togglePainelMusicas;
+    sidebar.insertBefore(btn, sidebar.firstChild);
+  }
+  btn.textContent = document.querySelector('.app')?.classList.contains('music-panel-collapsed') ? '🎵' : '⇤ Recolher painel';
+
+  let panel = document.getElementById('sidebar-musicas-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'sidebar-musicas-panel';
+    panel.className = 'sidebar-musicas-panel';
+    sidebar.appendChild(panel);
+  }
+}
+
+function togglePainelMusicas() {
+  const app = document.querySelector('.app');
+  app.classList.toggle('music-panel-collapsed');
+  localStorage.setItem('cantoral_music_panel_collapsed', app.classList.contains('music-panel-collapsed') ? '1' : '0');
+  garantirPainelLateralMusicas();
+}
+
+function restaurarEstadoPainelMusicas() {
+  const app = document.querySelector('.app');
+  if (!app) return;
+  app.classList.toggle('music-panel-collapsed', localStorage.getItem('cantoral_music_panel_collapsed') === '1');
+}
+
+function selecionarMusicaPainel(id) {
+  state.musicaSelecionadaId = id;
+  saveState();
+  renderSidebarMusicas();
+  renderCatalogoContent();
+}
+
+function getMusicaSelecionadaPainel() {
+  let m = state.repertorio.find(x => x.id === state.musicaSelecionadaId);
+  if (m) return m;
+  garantirFavoritosOrdem();
+  const favoritas = ordenarMusicasSimples(state.repertorio.filter(x => x.favorita));
+  if (favoritas.length) return favoritas[0];
+  return [...state.repertorio].sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||'', 'pt-BR', {sensitivity:'base'}))[0] || null;
+}
+
+function renderSidebarMusicas() {
+  garantirPainelLateralMusicas();
+  const panel = document.getElementById('sidebar-musicas-panel');
+  if (!panel) return;
+  garantirFavoritosOrdem();
+
+  const q = normalizarTexto(painelMusicasBusca || '');
+  let lista = state.repertorio.filter(m => !q || normalizarTexto([m.titulo, m.artista, m.tom, (m.tags||[]).join(' '), m.letra, m.cifra].join(' ')).includes(q));
+  const favoritas = ordenarMusicasSimples(lista.filter(m => m.favorita));
+  const outras = lista.filter(m => !m.favorita).sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||'', 'pt-BR', {sensitivity:'base'}));
+  const selecionada = getMusicaSelecionadaPainel();
+
+  panel.innerHTML = `
+    <div class="sidebar-musicas-head">
+      <div class="sidebar-musicas-title">🎵 Músicas</div>
+      <button class="btn btn-outline btn-sm" onclick="showPage('repertorio');switchRepTab('adicionar')">+</button>
+    </div>
+    <div class="sidebar-musicas-sub">Favoritas no topo. Arraste as favoritas para ordenar. Clique em uma música para abrir à direita.</div>
+    <input class="sidebar-musicas-search" type="text" value="${escapeHtml(painelMusicasBusca)}" placeholder="Buscar música..." oninput="painelMusicasBusca=this.value;renderSidebarMusicas()">
+    <div class="sidebar-musicas-lista">
+      ${favoritas.length ? '<div class="sidebar-music-section">⭐ Favoritas</div>' : ''}
+      ${favoritas.map(m => renderSidebarMusicRow(m, selecionada?.id)).join('')}
+      ${outras.length ? '<div class="sidebar-music-section">Todas as músicas</div>' : ''}
+      ${outras.map(m => renderSidebarMusicRow(m, selecionada?.id)).join('')}
+      ${!favoritas.length && !outras.length ? '<div style="padding:18px 8px;text-align:center;color:var(--texto-claro);font-size:12px">Nenhuma música encontrada.</div>' : ''}
+    </div>`;
+}
+
+function renderSidebarMusicRow(m, selecionadaId) {
+  const draggable = m.favorita ? 'true' : 'false';
+  const handle = m.favorita ? '☰' : '';
+  const active = selecionadaId === m.id ? ' active' : '';
+  return `
+    <div class="sidebar-music-row${active}" data-id="${m.id}" draggable="${draggable}" onclick="selecionarMusicaPainel('${m.id}')" ondragstart="dragFavoritaStart(event,'${m.id}')" ondragover="dragFavoritaOver(event)" ondrop="dropFavorita(event,'${m.id}')" ondragend="dragFavoritaEnd(event)">
+      <span class="sidebar-drag-handle">${handle}</span>
+      <button class="sidebar-fav-btn ${m.favorita ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorita('${m.id}')">${m.favorita ? '★' : '☆'}</button>
+      <div class="sidebar-music-info">
+        <div class="sidebar-music-title">${escapeHtml(m.titulo || '')}</div>
+        <div class="sidebar-music-meta">${escapeHtml(m.artista || '—')} ${m.tom ? '· ' + escapeHtml(TONS_PT[m.tom] || m.tom) : ''}</div>
+      </div>
+    </div>`;
+}
+
+const renderSidebarV15 = renderSidebar;
+function renderSidebar() {
+  renderSidebarV15();
+  garantirPainelLateralMusicas();
+  renderSidebarMusicas();
+}
+
+function renderCatalogoContent() {
+  garantirFavoritosOrdem();
+  const container = document.getElementById('catalogo-content');
+  const cat = state.catalogos.find(c => c.id === state.catalogoAtivo);
+  if (!cat) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🎵</div>
+        <div class="empty-title">Bem-vindo ao Cantoral</div>
+        <div class="empty-sub">Crie sua primeira celebração para organizar seu repertório.</div>
+        <button class="btn btn-primary" onclick="abrirModalNovoCatalogo()">✝ Criar Primeira Celebração</button>
+      </div>`;
+    return;
+  }
+
+  const tipo = getTipoCelebracao(cat.tipoId);
+  const tempo = getTempoLiturgico(cat.tempoId);
+  const selecionada = getMusicaSelecionadaPainel();
+  if (selecionada && state.musicaSelecionadaId !== selecionada.id) state.musicaSelecionadaId = selecionada.id;
+
+  container.innerHTML = `
+    <div class="cat-header">
+      <div>
+        <div class="cat-header-title">${escapeHtml(cat.nome)}</div>
+        <div class="cat-header-sub"><span class="tipo-badge">${tipo.icon} ${escapeHtml(tipo.nome)}</span> <span class="tipo-badge">${tempo.icon} ${escapeHtml(tempo.nome)}</span> &nbsp; ${state.repertorio.length} música${state.repertorio.length!==1?'s':''}</div>
+      </div>
+      <div class="cat-actions">
+        <button class="btn btn-outline btn-sm" onclick="togglePainelMusicas()">☰ Painel</button>
+        <button class="btn btn-gold btn-sm" onclick="gerarSugestoesCatalogo()">✨ Gerar Sugestões</button>
+        <button class="btn btn-primary btn-sm" onclick="showPage('repertorio');switchRepTab('adicionar')">🎵 Adicionar Música</button>
+      </div>
+    </div>
+    ${selecionada ? renderLeitorMusicaDireita(selecionada) : renderLeitorVazio()}`;
+}
+
+function renderLeitorVazio() {
+  return `<div class="leitor-empty"><div class="leitor-empty-title">Selecione uma música</div><div>Clique em uma música no painel lateral para abrir a cifra ou a letra.</div></div>`;
+}
+
+function renderLeitorMusicaDireita(m) {
+  const tom = m.tom ? (TONS_PT[m.tom] || m.tom) : '—';
+  const conteudo = renderConteudoCifraInline(m);
+  return `
+    <div class="leitor-musica-card">
+      <div class="leitor-musica-header">
+        <div>
+          <div class="leitor-musica-title">${escapeHtml(m.titulo || '')}</div>
+          <div class="leitor-musica-meta">${escapeHtml(m.artista || '—')} · Tom: ${escapeHtml(tom)}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+          <button class="btn btn-outline btn-sm" onclick="toggleFavorita('${m.id}')">${m.favorita ? '★ Favorita' : '☆ Favoritar'}</button>
+          <button class="btn btn-primary btn-sm" onclick="abrirViewer('${m.id}')">Tela cheia</button>
+        </div>
+      </div>
+      <div class="leitor-musica-content">${conteudo}</div>
+    </div>`;
+}
+
+function renderConteudoCifraInline(m) {
+  const texto = m.cifra || m.letra || 'Sem conteúdo cadastrado.';
+  return texto.split('
+').map(linha => {
+    if (ehLinhaDeCifra(linha)) return `<span class="cifra-line">${escapeHtml(linha)}</span>`;
+    return escapeHtml(linha);
+  }).join('
+');
+}
+
+const toggleFavoritaV15 = toggleFavorita;
+function toggleFavorita(id) {
+  toggleFavoritaV15(id);
+  renderSidebarMusicas();
+  renderCatalogoContent();
+}
+
+const dropFavoritaV15 = dropFavorita;
+function dropFavorita(ev, targetId) {
+  dropFavoritaV15(ev, targetId);
+  renderSidebarMusicas();
+  renderCatalogoContent();
+}
+
+const showPageV15 = showPage;
+function showPage(page) {
+  restaurarEstadoPainelMusicas();
+  showPageV15(page);
+  if (page === 'catalogos') {
+    garantirPainelLateralMusicas();
+    renderSidebarMusicas();
+  }
 }
 
 // ═══════════════════════════════════════════════════════
