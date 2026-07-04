@@ -1014,7 +1014,125 @@
     }
   }
 
+
+/* Dark mode: manter estrelas favoritas amarelas e visíveis */
+body.dark-mode .fav-btn.active,
+body.dark-mode .simple-fav.active,
+body.dark-mode .sidebar-fav-btn.active {
+  color: #f3cf54 !important;
+  border-color: #f3cf54 !important;
+  background: rgba(243,207,84,0.16) !important;
+}
+body.dark-mode .fav-btn.active:hover,
+body.dark-mode .simple-fav.active:hover,
+body.dark-mode .sidebar-fav-btn.active:hover {
+  color: #ffd95a !important;
+  border-color: #ffd95a !important;
+  background: rgba(243,207,84,0.24) !important;
+}
+
 </style>
+
+<style id="cantoral-dark-mode-css">
+/* V1.7.4 — Dark Mode opcional */
+body.dark-mode {
+  --azul-profundo: #d8ecff;
+  --azul-medio: #78b7f2;
+  --azul-claro: #4d9ae6;
+  --azul-palido: #24435f;
+  --azul-gelo: #14283c;
+  --azul-branco: #0f2030;
+  --branco: #12283b;
+  --cinza-suave: #23384a;
+  --texto-escuro: #eef7ff;
+  --texto-medio: #c9dff3;
+  --texto-claro: #8fb0ce;
+  --dourado: #f3cf54;
+  --dourado-claro: #f6dc7d;
+  --sombra: 0 4px 20px rgba(0,0,0,0.32);
+  --sombra-hover: 0 8px 32px rgba(0,0,0,0.48);
+  background: linear-gradient(160deg, #07131f 0%, #0b1d2f 45%, #10273a 100%);
+}
+body.dark-mode header {
+  background: linear-gradient(135deg, #071827 0%, #12365a 100%);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.42);
+}
+body.dark-mode .sidebar,
+body.dark-mode .modal,
+body.dark-mode .home-card,
+body.dark-mode .rep-card,
+body.dark-mode .momento-section,
+body.dark-mode .tipo-manage-card,
+body.dark-mode .busca-resultado,
+body.dark-mode .simple-reader-card,
+body.dark-mode .simple-music-row {
+  background: #102335 !important;
+  border-color: #27445e !important;
+}
+body.dark-mode .main,
+body.dark-mode .app,
+body.dark-mode #cantoral-simple-root,
+body.dark-mode #view-home,
+body.dark-mode #view-catalogo,
+body.dark-mode #view-repertorio {
+  background: transparent !important;
+}
+body.dark-mode .simple-reader-header,
+body.dark-mode .momento-header,
+body.dark-mode .cat-header,
+body.dark-mode .viewer-controls {
+  background: linear-gradient(135deg, #132f47, #102335) !important;
+  border-color: #27445e !important;
+}
+body.dark-mode .simple-content,
+body.dark-mode .musica-content,
+body.dark-mode .form-input,
+body.dark-mode .form-select,
+body.dark-mode .form-textarea,
+body.dark-mode .search-bar,
+body.dark-mode .simple-search,
+body.dark-mode .filtro-momento-select,
+body.dark-mode .musica-card,
+body.dark-mode .momento-manage-item {
+  background: #0b1c2b !important;
+  color: var(--texto-escuro) !important;
+  border-color: #27445e !important;
+}
+body.dark-mode .simple-music-row.active,
+body.dark-mode .catalogo-item.active {
+  background: #173a5a !important;
+  border-color: #5b9bd5 !important;
+}
+body.dark-mode .btn-outline,
+body.dark-mode .tone-btn,
+body.dark-mode .fav-btn,
+body.dark-mode .simple-fav,
+body.dark-mode .sidebar-collapse-btn,
+body.dark-mode .add-catalogo-btn {
+  background: #0b1c2b !important;
+  color: var(--texto-escuro) !important;
+  border-color: #315674 !important;
+}
+body.dark-mode .btn-outline:hover,
+body.dark-mode .tone-btn:hover,
+body.dark-mode .simple-fav:hover {
+  background: #173a5a !important;
+}
+body.dark-mode .simple-tone,
+body.dark-mode .btn-primary {
+  background: linear-gradient(135deg, #2d7bbb, #4d9ae6) !important;
+  color: #fff !important;
+}
+body.dark-mode .home-hero {
+  background: linear-gradient(135deg, #0b1c2b, #12365a) !important;
+}
+body.dark-mode .toast { background: #071827 !important; }
+body.dark-mode .nav-btn.theme-toggle.active-theme {
+  background: rgba(243,207,84,0.28);
+  border-color: rgba(243,207,84,0.65);
+}
+</style>
+
 </head>
 <body>
 
@@ -1028,8 +1146,7 @@
     </div>
   </div>
   <nav class="header-nav">
-    <button class="nav-btn active" onclick="simpleStart()">🏠 Home</button>
-    <button class="nav-btn" onclick="simpleStart()">🎶 Repertório</button>
+    <button class="nav-btn theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Alternar modo claro/escuro">🌙 Dark</button>
   </nav>
 </header>
 
@@ -1078,7 +1195,7 @@
           <div class="home-card-text">Crie um novo catálogo para a próxima missa e escolha os momentos litúrgicos desejados.</div>
         </div>
       </div>
-      <div class="app-version">Cantoral v1.7.2 · Sem celebrações · Favoritas restauradas</div>
+      <div class="app-version">Cantoral v1.7.8 · Editar música · Dark Mode</div>
     </div>
 
     <!-- VIEW: CATALOGOS -->
@@ -1369,6 +1486,7 @@ let state = {
   tiposCelebracao: [],
   temposLiturgicos: [],
 };
+let musicaEditandoId = null;
 
 // Versão do app — alterar aqui força reset dos dados de seed
 const APP_VERSION = 'v2';
@@ -1455,6 +1573,9 @@ function restaurarFavoritasConhecidasSeVazio() {
 
 // Seed demo data
 function seedDemo() {
+  // No modo sem celebrações, não podemos usar catalogos.length como critério,
+  // porque as celebrações são removidas. Se já existe repertório salvo, preserva tudo.
+  if (state.repertorio && state.repertorio.length > 0) return;
   if (state.catalogos.length > 0) return;
 
   // ── 8 músicas pré-carregadas ──
@@ -2957,6 +3078,11 @@ function removerMusicaDoCatalogo(catId, momentoId, musicaId) {
 }
 
 function abrirNovaManual() {
+  musicaEditandoId = null;
+  const titleEl = document.querySelector('#modal-nova-musica .modal-title');
+  if (titleEl) titleEl.textContent = '✍️ Nova Música Manual';
+  const saveBtn = document.querySelector('#modal-nova-musica .modal-footer .btn-primary');
+  if (saveBtn) saveBtn.textContent = 'Salvar Música';
   document.getElementById('nm-titulo').value = '';
   document.getElementById('nm-artista').value = '';
   document.getElementById('nm-tom').value = '';
@@ -2964,16 +3090,59 @@ function abrirNovaManual() {
   abrirModal('modal-nova-musica');
 }
 
+function abrirEditarMusica(id) {
+  const musica = state.repertorio.find(m => m.id === id);
+  if (!musica) { toast('⚠️ Música não encontrada'); return; }
+
+  musicaEditandoId = id;
+  const titleEl = document.querySelector('#modal-nova-musica .modal-title');
+  if (titleEl) titleEl.textContent = '✏️ Editar Música';
+  const saveBtn = document.querySelector('#modal-nova-musica .modal-footer .btn-primary');
+  if (saveBtn) saveBtn.textContent = 'Salvar Alterações';
+
+  document.getElementById('nm-titulo').value = musica.titulo || '';
+  document.getElementById('nm-artista').value = musica.artista || '';
+  document.getElementById('nm-tom').value = musica.tom || '';
+  document.getElementById('nm-cifra').value = musica.cifra || musica.letra || '';
+
+  abrirModal('modal-nova-musica');
+}
+
 function salvarMusicaManual() {
   const titulo = document.getElementById('nm-titulo').value.trim();
   if (!titulo) { toast('⚠️ Digite o título da música'); return; }
-  const id = uid();
-  const musica = {
-    id, titulo,
+
+  const dadosMusica = {
+    titulo,
     artista: document.getElementById('nm-artista').value.trim(),
     tom: document.getElementById('nm-tom').value.trim() || 'C',
     cifra: document.getElementById('nm-cifra').value,
-    letra: '',
+    letra: ''
+  };
+
+  let id = musicaEditandoId;
+  if (id) {
+    const musica = state.repertorio.find(m => m.id === id);
+    if (!musica) { toast('⚠️ Música não encontrada'); return; }
+    Object.assign(musica, dadosMusica);
+    musicaEditandoId = null;
+    saveState();
+    fecharModal('modal-nova-musica');
+    toast('✅ Música atualizada!');
+    if (document.body.classList.contains('cantoral-simple-mode')) {
+      state.musicaSelecionadaId = id;
+      simpleSave();
+      simpleRender();
+    } else {
+      renderRepertorio(); switchRepTab('todas');
+    }
+    return;
+  }
+
+  id = uid();
+  const musica = {
+    id,
+    ...dadosMusica,
     favorita: false
   };
   state.repertorio.push(musica);
@@ -2983,6 +3152,10 @@ function salvarMusicaManual() {
   if (buscaMomentoCtx) {
     prepararAddMusica(id);
     buscaMomentoCtx = null;
+  } else if (document.body.classList.contains('cantoral-simple-mode')) {
+    state.musicaSelecionadaId = id;
+    simpleSave();
+    simpleRender();
   } else {
     renderRepertorio(); switchRepTab('todas');
   }
@@ -5486,13 +5659,12 @@ function renderSidebarMusicas() {
   garantirPainelLateralMusicas();
   const panel = document.getElementById('sidebar-musicas-panel');
   if (!panel) return;
-  garantirFavoritosOrdem();
 
-  const q = normalizarTexto(painelMusicasBusca || '');
-  let lista = state.repertorio.filter(m => !q || normalizarTexto([m.titulo, m.artista, m.tom, (m.tags||[]).join(' '), m.letra, m.cifra].join(' ')).includes(q));
-  const favoritas = ordenarMusicasSimples(lista.filter(m => m.favorita));
-  const outras = lista.filter(m => !m.favorita).sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||'', 'pt-BR', {sensitivity:'base'}));
-  const selecionada = getMusicaSelecionadaPainel();
+  // Importante para celular: o input de busca NÃO pode ser recriado a cada tecla,
+  // senão o Chrome perde o foco e fecha o teclado. Por isso renderizamos o input
+  // uma vez e atualizamos somente a lista abaixo dele.
+  const inputFocused = document.activeElement && document.activeElement.id === 'sidebar-musicas-search';
+  const cursorPos = inputFocused ? document.activeElement.selectionStart : null;
 
   panel.innerHTML = `
     <div class="sidebar-musicas-head">
@@ -5500,14 +5672,42 @@ function renderSidebarMusicas() {
       <button class="btn btn-outline btn-sm" onclick="simpleAbrirAdicionarMusica()">+</button>
     </div>
     <div class="sidebar-musicas-sub">Favoritas no topo, separadas das demais. Arraste as favoritas para ordenar.</div>
-    <input class="sidebar-musicas-search" type="text" value="${escapeHtml(painelMusicasBusca)}" placeholder="Buscar música..." oninput="painelMusicasBusca=this.value;renderSidebarMusicas()">
-    <div class="sidebar-musicas-lista">
+    <input class="sidebar-musicas-search" id="sidebar-musicas-search" type="text" value="${escapeHtml(painelMusicasBusca)}" placeholder="Buscar música..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" oninput="handlePainelMusicasBusca(this.value)">
+    <div class="sidebar-musicas-lista" id="sidebar-musicas-lista"></div>`;
+
+  renderSidebarMusicasLista();
+
+  if (inputFocused) {
+    const inp = document.getElementById('sidebar-musicas-search');
+    if (inp) {
+      inp.focus({ preventScroll: true });
+      if (cursorPos !== null) inp.setSelectionRange(cursorPos, cursorPos);
+    }
+  }
+}
+
+function handlePainelMusicasBusca(valor) {
+  painelMusicasBusca = valor || '';
+  renderSidebarMusicasLista();
+}
+
+function renderSidebarMusicasLista() {
+  garantirFavoritosOrdem();
+  const listaEl = document.getElementById('sidebar-musicas-lista');
+  if (!listaEl) return;
+
+  const q = normalizarTexto(painelMusicasBusca || '');
+  let lista = state.repertorio.filter(m => !q || normalizarTexto([m.titulo, m.artista, m.tom, (m.tags||[]).join(' '), m.letra, m.cifra].join(' ')).includes(q));
+  const favoritas = ordenarMusicasSimples(lista.filter(m => m.favorita));
+  const outras = lista.filter(m => !m.favorita).sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||'', 'pt-BR', {sensitivity:'base'}));
+  const selecionada = getMusicaSelecionadaPainel();
+
+  listaEl.innerHTML = `
       <div class="sidebar-music-section">⭐ Favoritas</div>
       ${favoritas.length ? favoritas.map(m => renderSidebarMusicRow(m, selecionada?.id)).join('') : '<div style="padding:10px 8px;color:var(--texto-claro);font-size:12px">Nenhuma favorita ainda.</div>'}
       <div class="sidebar-music-section">Todas as músicas</div>
       ${outras.length ? outras.map(m => renderSidebarMusicRow(m, selecionada?.id)).join('') : '<div style="padding:10px 8px;color:var(--texto-claro);font-size:12px">Nenhuma música fora das favoritas.</div>'}
-      ${!favoritas.length && !outras.length ? '<div style="padding:18px 8px;text-align:center;color:var(--texto-claro);font-size:12px">Nenhuma música encontrada.</div>' : ''}
-    </div>`;
+      ${!favoritas.length && !outras.length ? '<div style="padding:18px 8px;text-align:center;color:var(--texto-claro);font-size:12px">Nenhuma música encontrada.</div>' : ''}`;
 }
 
 function renderSidebarMusicRow(m, selecionadaId) {
@@ -5614,6 +5814,7 @@ function renderLeitorMusicaDireita(m) {
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
           <button class="btn btn-outline btn-sm" onclick="toggleFavorita('${m.id}')">${m.favorita ? '★ Favorita' : '☆ Favoritar'}</button>
+          <button class="btn btn-outline btn-sm" onclick="abrirEditarMusica('${m.id}')">✏️ Editar</button>
           <button class="btn btn-primary btn-sm" onclick="abrirViewer('${m.id}')">Tela cheia</button>
         </div>
       </div>
@@ -5709,6 +5910,50 @@ body.cantoral-simple-mode .home-card, body.cantoral-simple-mode .home-hero { cur
   .simple-sidebar-list { max-height:calc(100vh - 235px); }
   body.simple-mobile-dim::before { content:''; position:fixed; inset:60px 0 0; background:rgba(10,30,60,.35); z-index:140; }
 }
+
+
+/* V1.7.7: correção mobile — mantém teclado aberto e impede rolagem da música atrás do painel */
+body.cantoral-simple-mode .simple-sidebar-list {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+body.simple-mobile-dim {
+  overflow: hidden !important;
+}
+body.simple-mobile-dim #sidebar {
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+body.simple-mobile-dim #cantoral-simple-sidebar-content {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+body.simple-mobile-dim .simple-sidebar-list {
+  min-height: 0;
+  flex: 1;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+@media (max-width:768px){
+  body.cantoral-simple-mode #sidebar {
+    width: min(88vw, 360px) !important;
+    max-width: 88vw !important;
+  }
+  body.simple-mobile-dim .main,
+  body.simple-mobile-dim #cantoral-simple-root,
+  body.simple-mobile-dim .simple-reader-wrap,
+  body.simple-mobile-dim .simple-reader-card,
+  body.simple-mobile-dim .simple-content {
+    overscroll-behavior: none;
+  }
+}
+
 </style>
 
 <script id="cantoral-v170-script">
@@ -5730,6 +5975,7 @@ function simpleSave(){
   simpleEnsureFavOrder();
   localStorage.setItem('cantoral_version', APP_VERSION);
   localStorage.setItem('cantoral_state', JSON.stringify(state));
+  if (typeof backupFavoritasCantoral === 'function') backupFavoritasCantoral();
 }
 function simpleGetFavs(lista){
   simpleEnsureFavOrder();
@@ -5802,33 +6048,59 @@ function simpleRow(m, selectedId, isFav){
 }
 
 function simpleAbrirAdicionarMusica(){
-  // Abre somente a aba antiga de adicionar música, mantendo o restante do app sem celebrações.
-  document.body.classList.remove('cantoral-simple-mode');
-  const sidebar=document.getElementById('sidebar'); if (sidebar) sidebar.style.display='none';
-  const home=document.getElementById('view-home'); if (home) home.style.display='none';
-  const cat=document.getElementById('view-catalogo'); if (cat) cat.style.display='none';
-  const rep=document.getElementById('view-repertorio'); if (rep) rep.style.display='block';
-  if (typeof renderRepertorio === 'function') renderRepertorio();
-  if (typeof switchRepTab === 'function') switchRepTab('adicionar');
-  document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active', i===1));
+  // No modo sem celebrações, o botão + deve abrir diretamente o cadastro manual.
+  // Isso evita voltar para telas antigas de celebrações/repertório.
+  if (typeof abrirNovaManual === 'function') {
+    abrirNovaManual();
+    return;
+  }
+  const titulo = prompt('Nome da música:');
+  if (!titulo || !titulo.trim()) return;
+  const artista = prompt('Artista / autor:', '') || '';
+  const tom = prompt('Tom:', 'C') || 'C';
+  const cifra = prompt('Cole a letra/cifra:', '') || '';
+  state.repertorio.push({ id: uid(), titulo: titulo.trim(), artista: artista.trim(), tom: tom.trim(), cifra, letra: '', favorita: false });
+  simpleSave();
+  simpleRender();
+  toast('✅ Música adicionada!');
 }
 function simpleRenderSidebar(){
   const sidebar = document.getElementById('sidebar');
   if (!sidebar) return;
-  sidebar.innerHTML = `<button id="sidebar-collapse-btn" class="sidebar-collapse-btn" onclick="simpleTogglePanel()">⇤ Recolher painel</button><div id="cantoral-simple-sidebar-content"></div>`;
-  const content = document.getElementById('cantoral-simple-sidebar-content');
+
+  // No celular o teclado fechava porque a busca recriava todo o painel a cada tecla.
+  // Agora o input é criado uma vez e apenas a lista abaixo é atualizada.
+  if (!document.getElementById('cantoral-simple-sidebar-content')) {
+    sidebar.innerHTML = `<button id="sidebar-collapse-btn" class="sidebar-collapse-btn" onclick="simpleTogglePanel()">⇤ Recolher painel</button><div id="cantoral-simple-sidebar-content"></div>`;
+    const content = document.getElementById('cantoral-simple-sidebar-content');
+    content.innerHTML = `<div class="simple-sidebar-header"><div class="simple-sidebar-title">🎵 Músicas <button class="btn btn-outline btn-sm" onclick="simpleAbrirAdicionarMusica()">+</button></div><div class="simple-sidebar-hint">Favoritas no topo. Arraste as favoritas para ordenar. Clique em uma música para abrir.</div></div>
+      <input class="simple-search" id="simple-search-input" value="${escapeHtml(simpleBusca)}" placeholder="Buscar música..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" oninput="simpleHandleBusca(this.value)">
+      <div class="simple-sidebar-list" id="simple-sidebar-list"></div>`;
+  } else {
+    const inp = document.getElementById('simple-search-input');
+    if (inp && inp.value !== simpleBusca && document.activeElement !== inp) inp.value = simpleBusca;
+  }
+  simpleRenderSidebarList();
+}
+
+function simpleHandleBusca(valor){
+  simpleBusca = valor || '';
+  simpleRenderSidebarList();
+}
+
+function simpleRenderSidebarList(){
+  const listaEl = document.getElementById('simple-sidebar-list');
+  if (!listaEl) return;
   const lista = simpleFiltrarMusicas();
   const favs = simpleGetFavs(lista);
   const outras = simpleGetOutras(lista);
   const sel = simpleGetSelected();
-  content.innerHTML = `<div class="simple-sidebar-header"><div class="simple-sidebar-title">🎵 Músicas <button class="btn btn-outline btn-sm" onclick="simpleAbrirAdicionarMusica()">+</button></div><div class="simple-sidebar-hint">Favoritas no topo. Arraste as favoritas para ordenar. Clique em uma música para abrir.</div></div>
-    <input class="simple-search" value="${escapeHtml(simpleBusca)}" placeholder="Buscar música..." oninput="simpleBusca=this.value;simpleRenderSidebar()">
-    <div class="simple-sidebar-list">
+  listaEl.innerHTML = `
       <div class="simple-section-title">⭐ Favoritas</div>
       ${favs.length ? favs.map(m=>simpleRow(m,sel?.id,true)).join('') : '<div style="font-size:12px;color:var(--texto-claro);padding:8px">Nenhuma favorita ainda.</div>'}
       <div class="simple-section-title">Todas as músicas</div>
       ${outras.length ? outras.map(m=>simpleRow(m,sel?.id,false)).join('') : '<div style="font-size:12px;color:var(--texto-claro);padding:8px">Nenhuma música encontrada.</div>'}
-    </div>`;
+    `;
 }
 function simpleRenderMain(){
   const main = document.querySelector('.main');
@@ -5855,7 +6127,7 @@ function simpleReader(m){
       <div><div class="simple-song-title">${escapeHtml(m.titulo||'')}</div><div class="simple-song-meta">${escapeHtml(m.artista||'—')} · Tom: ${escapeHtml(tom)}</div>
         <div class="simple-controls"><span class="simple-label">Tom:</span><button class="tone-btn" onclick="simpleMudarTom('${m.id}',-1)">♭</button><span class="simple-tone">${escapeHtml(tom)}</span><button class="tone-btn" onclick="simpleMudarTom('${m.id}',1)">♯</button><button class="tone-btn" onclick="simpleMudarFonte('${m.id}',-1)" style="font-size:12px;font-weight:900;width:36px">A−</button><button class="tone-btn" onclick="simpleMudarFonte('${m.id}',1)" style="font-size:15px;font-weight:900;width:36px">A+</button></div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-outline btn-sm" onclick="simpleToggleFav('${m.id}')">${m.favorita?'★ Favorita':'☆ Favoritar'}</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-outline btn-sm" onclick="simpleToggleFav('${m.id}')">${m.favorita?'★ Favorita':'☆ Favoritar'}</button><button class="btn btn-primary btn-sm" onclick="abrirEditarMusica('${m.id}')">✏️ Editar</button></div>
     </div>
     <div class="simple-content" style="font-size:${font}px">${simpleConteudo(m)}</div>
   </div>`;
@@ -5865,9 +6137,33 @@ function simpleTogglePanel(){
   app.classList.toggle('music-panel-collapsed');
   localStorage.setItem('cantoral_music_panel_collapsed', app.classList.contains('music-panel-collapsed')?'1':'0');
 }
-function simpleOpenMobilePanel(){ document.getElementById('sidebar')?.classList.add('mobile-open'); document.body.classList.add('simple-mobile-dim'); }
-function simpleCloseMobilePanel(){ document.getElementById('sidebar')?.classList.remove('mobile-open'); document.body.classList.remove('simple-mobile-dim'); }
-function simpleRender(){ simpleRenderSidebar(); simpleRenderMain(); document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active', i===0)); }
+let simpleBodyScrollY = 0;
+function simpleOpenMobilePanel(){
+  simpleBodyScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  const sidebar = document.getElementById('sidebar');
+  sidebar?.classList.add('mobile-open');
+  document.body.classList.add('simple-mobile-dim');
+  if (window.innerWidth <= 768) {
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${simpleBodyScrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+  }
+}
+function simpleCloseMobilePanel(){
+  document.getElementById('sidebar')?.classList.remove('mobile-open');
+  document.body.classList.remove('simple-mobile-dim');
+  if (document.body.style.position === 'fixed') {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    window.scrollTo(0, simpleBodyScrollY || 0);
+  }
+}
+function simpleRender(){ simpleRenderSidebar(); simpleRenderMain(); document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active', i===0)); applyTheme(); }
 
 const originalShowPageForAddMusic = window.showPage;
 window.showPage = function(page){
@@ -5889,8 +6185,24 @@ function simpleStart(){
 
 document.addEventListener('click', function(e){ if (document.body.classList.contains('simple-mobile-dim') && !e.target.closest('#sidebar') && !e.target.closest('.simple-mobile-panel-btn')) simpleCloseMobilePanel(); });
 
+
+function applyTheme(){
+  const theme = localStorage.getItem('cantoral_theme') || 'light';
+  document.body.classList.toggle('dark-mode', theme === 'dark');
+  const btn = document.getElementById('theme-toggle-btn');
+  if (btn) {
+    btn.textContent = theme === 'dark' ? '☀️ Claro' : '🌙 Dark';
+    btn.classList.toggle('active-theme', theme === 'dark');
+  }
+}
+function toggleTheme(){
+  const atual = localStorage.getItem('cantoral_theme') || 'light';
+  localStorage.setItem('cantoral_theme', atual === 'dark' ? 'light' : 'dark');
+  applyTheme();
+}
+
 // iniciar no novo modo simples
-try { simpleStart(); } catch(e) { console.error('Erro ao iniciar Cantoral simples', e); }
+try { applyTheme(); simpleStart(); } catch(e) { console.error('Erro ao iniciar Cantoral simples', e); }
 </script>
 
 </body>
